@@ -95,5 +95,33 @@ def main():
             TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), stopwords='english'))
         representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), max_df=0.7))
 
+    # load the text corpus
+    for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
+        if not os.path.isdir(data_dir + '/' + train_corpora_dir + '/' + dirname):
+            continue
+        if dirname == train_corpora_dir or dirname == '.DS_Store':
+            continue
+        with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'contents.json') as json_data:
+            contents = yaml.load(json_data)
+            print(contents)
+            for problem in contents['problems']:
+                unknown = open(
+                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + 'unknown.txt',
+                    'r').read()
+                corpus = ''
+                # TODO: should also be replaced with os.listdir
+                for _, _, files in os.walk(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
+                    for file in files:
+                        if file.endswith(".txt") and not file == 'unknown.txt':
+                            corpus += open(
+                                data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
+                                'r').read()
+                            corpus += '\n'
+                corpus = ''
+
+                # for representationSpace in representationSpaces:
+                #    representationSpace.vectorizer.fit_transform(corpus)
+
+
 if __name__ == '__main__':
     main()
