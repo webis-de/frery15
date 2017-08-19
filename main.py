@@ -9,6 +9,21 @@ train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
 data_dir = 'data'
 
 
+class TfidfRepresentationSpace(object):
+    def __init__(self, analyzer=None, ngram_range=0, stopwords=None, max_df=1.0):
+        self.analyzer = analyzer
+        self.ngram_range = ngram_range
+        self.stopwords = stopwords
+        self.max_df = max_df
+        self.vectorizer = None
+
+    def vectorizer(self):
+        if self.vectorizer.isNone():
+            self.vectorizer = CountVectorizer(input='filename', analyzer=self.analyzer,
+                                              ngram_range=self.ngram_range, stop_words=self.stop_words)
+        return self.vectorizer
+
+
 def may_download_training(url, prefix_dir, dir):
     if not os.path.exists(prefix_dir):
         os.makedirs(prefix_dir)
@@ -66,6 +81,19 @@ def main():
     may_download_training(train_corpora_url, data_dir, train_corpora_dir)
     may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
 
+    representationSpaces = []
+
+    # create TfidfRepresentationSpace objects for each combination from the paper
+    for analyzer in ['char', 'char_wb']:
+        for ngram_range in [(3, 3), (8, 8)]:
+            representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=ngram_range))
+
+    for analyzer in 'word':
+        for ngram_range in [(2, 2)]:
+            representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=ngram_range))
+        representationSpaces.append(
+            TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), stopwords='english'))
+        representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), max_df=0.7))
 
 if __name__ == '__main__':
     main()
