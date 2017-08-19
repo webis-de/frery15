@@ -2,7 +2,10 @@ import os
 import urllib
 import zipfile
 from itertools import chain
-import nltk
+from sklearn.feature_extraction.text import CountVectorizer
+import json
+import yaml
+import copy
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -16,13 +19,32 @@ class TfidfRepresentationSpace(object):
         self.stopwords = stopwords
         self.max_df = max_df
         self.vectorizer = None
+        self.document_matrix = None
 
-    def vectorizer(self):
-        if self.vectorizer.isNone():
-            self.vectorizer = CountVectorizer(input='filename', analyzer=self.analyzer,
-                                              ngram_range=self.ngram_range, stop_words=self.stop_words)
+    def set_corpus(self, corpus):
+        self.corpus = corpus
+
+    def set_unknown_text(self, text):
+        self.unknown_text = text
+
+    def set_language(self, language):
+        self.language = language
+
+    def set_genre(self, genre):
+        self.genre = genre
+
+    def get_vectorizer(self):
+        if self.vectorizer is None:
+            self.vectorizer = CountVectorizer(analyzer=self.analyzer,
+                                              ngram_range=self.ngram_range, stop_words=self.stopwords)
         return self.vectorizer
 
+    def get_document_matrix(self):
+        assert self.corpus is not None
+
+        if self.document_matrix is None:
+            self.document_matrix = self.get_vectorizer().fit_transform(self.corpus)
+        return self.document_matrix
 
 def may_download_training(url, prefix_dir, dir):
     if not os.path.exists(prefix_dir):
@@ -50,29 +72,6 @@ def may_unzip_corpus(dir_zips, data_dir, train_corpora_dir):
                 # assert os.path.exists(data_dir+'/'+train_corpora_dir+'/'+file[:-4])
                 os.remove(data_dir + '/' + train_corpora_dir + '/' + file)
 
-
-# From https://stackoverflow.com/questions/22428020/how-to-extract-character-ngram-from-sentences-python?noredirect=1&lq=1
-def word_to_char_ngrams(word, n=3):
-    """ Convert word into character ngrams. """
-    return [word[i:i + n] for i in range(len(word) - n + 1)]
-
-
-def text_to_char_ngrams(text, n=3):
-    """ Convert sentences into character ngrams. """
-    return list(chain(*[word_to_char_ngrams(i, n) for i in text.lower().split()]))
-
-
-def text_to_word_bigrams(text):
-    words = nltk.word_tokenize(text)
-    bigrams = nltk.bigrams(words)
-    return bigrams
-
-
-def text_to_word_unigrams(text):
-    words = nltk.word_tokenize(text)
-    return words
-
-
 # TODO: Phrases: word per sentence mean and standard deviation
 # TODO: Vocabulary diversity: total number of different terms divided by the total number of occurrences of words
 # TODO: Punctuation: average of punctuation marks per sentence characters: "," ";" ":" "(" ")" "!" "?"
@@ -96,32 +95,38 @@ def main():
         representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), max_df=0.7))
 
     # load the text corpus
-    for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
-        if not os.path.isdir(data_dir + '/' + train_corpora_dir + '/' + dirname):
-            continue
-        if dirname == train_corpora_dir or dirname == '.DS_Store':
-            continue
-        with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'contents.json') as json_data:
-            contents = yaml.load(json_data)
-            print(contents)
-            for problem in contents['problems']:
-                unknown = open(
-                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + 'unknown.txt',
-                    'r').read()
-                corpus = ''
-                # TODO: should also be replaced with os.listdir
-                for _, _, files in os.walk(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
-                    for file in files:
-                        if file.endswith(".txt") and not file == 'unknown.txt':
-                            corpus += open(
-                                data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
-                                'r').read()
-                            corpus += '\n'
-                corpus = ''
+    representationSpacesWithCorpus = []
+    for representationSpace in representationSpaces:
+        for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
+            if not os.path.isdir(data_dir + '/' + train_corpora_dir + '/' + dirname):
+                continue
+            if dirname == train_corpora_dir or dirname == '.DS_Store':
+                continue
+            with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'contents.json') as json_data:
+                contents = yaml.load(json_data)
+                print(contents)
+                for problem in contents['problems']:
+                    unknown = open(
+                        data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + 'unknown.txt',
+                        'r').read()
+                    corpus = []
+                    # TODO: should also be replaced with os.listdir
+                    for _, _, files in os.walk(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
+                        for file in files:
+                            if file.endswith(".txt") and not file == 'unknown.txt':
+                                corpus.append(open(
+                                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
+                                    'r').read())
+                    representationSpaceCopy = copy.deepcopy(representationSpace)
+                    representationSpaceCopy.set_language(contents['language'])
+                    representationSpaceCopy.set_genre(contents['genre'])
+                    representationSpaceCopy.set_unknown_text(unknown)
+                    representationSpaceCopy.set_corpus(corpus)
 
-                # for representationSpace in representationSpaces:
-                #    representationSpace.vectorizer.fit_transform(corpus)
-
+                    representationSpacesWithCorpus.append(representationSpaceCopy)
+                    corpus = []
+    # to be sure that no errors by using the old spaces occur
+    representationSpaces = representationSpacesWithCorpus
 
 if __name__ == '__main__':
     main()
