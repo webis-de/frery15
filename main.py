@@ -1,6 +1,8 @@
 import os
 import urllib
 import zipfile
+from itertools import chain
+import nltk
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -31,6 +33,28 @@ def may_unzip_corpus(dir_zips,data_dir,train_corpora_dir):
                 # Unzipped file has an other name than zip file
                 #assert os.path.exists(data_dir+'/'+train_corpora_dir+'/'+file[:-4])
                 os.remove(data_dir+'/'+train_corpora_dir+'/'+file)
+
+# From https://stackoverflow.com/questions/22428020/how-to-extract-character-ngram-from-sentences-python?noredirect=1&lq=1
+def word_to_char_ngrams(word, n=3):
+    """ Convert word into character ngrams. """
+    return [word[i:i+n] for i in range(len(word)-n+1)]
+
+def text_to_char_ngrams(text, n=3):
+    """ Convert sentences into character ngrams. """
+    return list(chain(*[word_to_char_ngrams(i,n) for i in text.lower().split()]))
+
+def text_to_word_bigrams(text):
+    words = nltk.word_tokenize(text)
+    bigrams = nltk.bigrams(words)
+    return bigrams
+
+def text_to_word_unigrams(text):
+    words = nltk.word_tokenize(text)
+    return words
+
+#TODO: Phrases: word per sentence mean and standard deviation
+#TODO: Vocabulary diversity: total number of different terms divided by the total number of occurrences of words
+#TODO: Punctuation: average of punctuation marks per sentence characters: "," ";" ":" "(" ")" "!" "?"
 
 def main():
     may_download_training(train_corpora_url,data_dir,train_corpora_dir)
