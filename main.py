@@ -1,8 +1,7 @@
 import os
 import urllib
 import zipfile
-from itertools import chain
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 import json
 import yaml
 import copy
@@ -39,7 +38,7 @@ class TfidfRepresentationSpace(object):
 
     def get_vectorizer(self):
         if self.vectorizer is None:
-            self.vectorizer = CountVectorizer(analyzer=self.analyzer,
+            self.vectorizer = TfidfVectorizer(analyzer=self.analyzer,
                                               ngram_range=self.ngram_range, stop_words=self.stopwords)
         return self.vectorizer
 
@@ -49,6 +48,7 @@ class TfidfRepresentationSpace(object):
         if self.document_matrix is None:
             self.document_matrix = self.get_vectorizer().fit_transform(self.corpus)
         return self.document_matrix
+
 
 def may_download_training(url, prefix_dir, dir):
     if not os.path.exists(prefix_dir):
@@ -76,6 +76,7 @@ def may_unzip_corpus(dir_zips, data_dir, train_corpora_dir):
                 # assert os.path.exists(data_dir+'/'+train_corpora_dir+'/'+file[:-4])
                 os.remove(data_dir + '/' + train_corpora_dir + '/' + file)
 
+
 # TODO: Phrases: word per sentence mean and standard deviation
 # TODO: Vocabulary diversity: total number of different terms divided by the total number of occurrences of words
 # TODO: Punctuation: average of punctuation marks per sentence characters: "," ";" ":" "(" ")" "!" "?"
@@ -84,21 +85,15 @@ def main():
     may_download_training(train_corpora_url, data_dir, train_corpora_dir)
     may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
 
-    representationSpaces = []
+    representationSpaces = build_representation_space()
 
-    # create TfidfRepresentationSpace objects for each combination from the paper
-    for analyzer in ['char', 'char_wb']:
-        for ngram_range in [(3, 3), (8, 8)]:
-            representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=ngram_range))
+    representationSpaces = load_text_corpus(representationSpaces)
 
-    for analyzer in 'word':
-        for ngram_range in [(2, 2)]:
-            representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=ngram_range))
-        representationSpaces.append(
-            TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), stopwords='english'))
-        representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), max_df=0.7))
+    print(representationSpaces[0].get_document_matrix())
+    print('hello')
 
-    # load the text corpus
+
+def load_text_corpus(representationSpaces):
     representationSpacesWithCorpus = []
     for representationSpace in representationSpaces:
         for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
@@ -115,7 +110,8 @@ def main():
                         'r').read()
                     corpus = []
                     # TODO: should also be replaced with os.listdir
-                    for _, _, files in os.walk(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
+                    for _, _, files in os.walk(
+                                                                                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
                         for file in files:
                             if file.endswith(".txt") and not file == 'unknown.txt':
                                 corpus.append(open(
@@ -130,8 +126,24 @@ def main():
 
                     representationSpacesWithCorpus.append(representationSpaceCopy)
                     corpus = []
-    # to be sure that no errors by using the old spaces occur
-    representationSpaces = representationSpacesWithCorpus
+    return representationSpaces
+
+
+def build_representation_space():
+    representationSpaces = []
+    # create TfidfRepresentationSpace objects for each combination from the paper
+    for analyzer in ['char', 'char_wb']:
+        for ngram_range in [(3, 3), (8, 8)]:
+            representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=ngram_range))
+    for analyzer in 'word':
+        for ngram_range in [(2, 2)]:
+            representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=ngram_range))
+        representationSpaces.append(
+            TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), stopwords='english'))
+        representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), max_df=0.7))
+
+    return representationSpaces
+
 
 if __name__ == '__main__':
     main()
