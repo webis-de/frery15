@@ -20,6 +20,7 @@ class TfidfRepresentationSpace(object):
         self.max_df = max_df
         self.vectorizer = None
         self.document_matrix = None
+        self.name = None
 
     def set_corpus(self, corpus):
         self.corpus = corpus
@@ -32,6 +33,9 @@ class TfidfRepresentationSpace(object):
 
     def set_genre(self, genre):
         self.genre = genre
+
+    def set_name(self, name):
+        self.name = name
 
     def get_vectorizer(self):
         if self.vectorizer is None:
@@ -120,6 +124,7 @@ def main():
                     representationSpaceCopy = copy.deepcopy(representationSpace)
                     representationSpaceCopy.set_language(contents['language'])
                     representationSpaceCopy.set_genre(contents['genre'])
+                    representationSpaceCopy.set_name(problem)
                     representationSpaceCopy.set_unknown_text(unknown)
                     representationSpaceCopy.set_corpus(corpus)
 
