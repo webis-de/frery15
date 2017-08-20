@@ -19,6 +19,7 @@ class TfidfRepresentationSpace(object):
         self.max_df = max_df
         self.vectorizer = None
         self.document_matrix = None
+        self.label = None
         self.name = None
 
     def set_corpus(self, corpus):
@@ -32,6 +33,9 @@ class TfidfRepresentationSpace(object):
 
     def set_genre(self, genre):
         self.genre = genre
+
+    def set_label(self, label):
+        self.label = label
 
     def set_name(self, name):
         self.name = name
@@ -86,11 +90,28 @@ def main():
     may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
 
     representationSpaces = build_representation_space()
-
     representationSpaces = load_text_corpus(representationSpaces)
+    set_labels(representationSpaces)
 
-    print(representationSpaces[0].get_document_matrix())
-    print('hello')
+
+def set_labels(representationSpaces):
+    for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
+        if dirname == '.DS_Store':
+            continue
+        with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'truth.json') as truth_data:
+
+            truth = yaml.load(truth_data)
+            for problem in truth['problems']:
+                for representationSpace in representationSpaces:
+                    if representationSpace.name == problem['name'] \
+                            and representationSpace.genre == problem['genre'] \
+                            and representationSpace.language == problem['language']:
+                        if problem['answer'] == 'Y':
+                            representationSpace.set_label(True)
+                        elif problem['answer'] == 'N':
+                            representationSpace.set_label(False)
+                        else:
+                            raise Exception('Answer isn\'t Y or N')
 
 
 def load_text_corpus(representationSpaces):
@@ -126,7 +147,7 @@ def load_text_corpus(representationSpaces):
 
                     representationSpacesWithCorpus.append(representationSpaceCopy)
                     corpus = []
-    return representationSpaces
+    return representationSpacesWithCorpus
 
 
 def build_representation_space():
