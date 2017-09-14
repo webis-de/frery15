@@ -85,15 +85,6 @@ def may_unzip_corpus(dir_zips, data_dir, train_corpora_dir):
 # TODO: Vocabulary diversity: total number of different terms divided by the total number of occurrences of words
 # TODO: Punctuation: average of punctuation marks per sentence characters: "," ";" ":" "(" ")" "!" "?"
 
-def main():
-    may_download_training(train_corpora_url, data_dir, train_corpora_dir)
-    may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
-
-    representationSpaces = build_representation_space()
-    representationSpaces = load_text_corpus(representationSpaces)
-    set_labels(representationSpaces)
-
-
 def set_labels(representationSpaces):
     for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
         if dirname == '.DS_Store':
@@ -165,6 +156,13 @@ def build_representation_space():
 
     return representationSpaces
 
+def main():
+    may_download_training(train_corpora_url, data_dir, train_corpora_dir)
+    may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
+
+    representationSpaces = build_representation_space()
+    representationSpaces = load_text_corpus(representationSpaces)
+    set_labels(representationSpaces)
 
 if __name__ == '__main__':
     main()
