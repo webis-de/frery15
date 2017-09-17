@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import json
 import yaml
 import copy
+import sys
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -12,7 +13,7 @@ data_dir = 'data'
 
 
 class TfidfRepresentationSpace(object):
-    def __init__(self, analyzer=None, ngram_range=0, stopwords=None, max_df=1.0):
+    def __init__(self, analyzer=None, ngram_range=0, stopwords=None, max_df=1.0, similarity=cosine_similarity):
         self.analyzer = analyzer
         self.ngram_range = ngram_range
         self.stopwords = stopwords
@@ -21,6 +22,13 @@ class TfidfRepresentationSpace(object):
         self.document_matrix = None
         self.label = None
         self.name = None
+        self.corpus = None
+        self.unknown_text = None
+        self.language = None
+        self.genre = None
+        self.similarity = similarity
+        self.mean = None
+        self.count = None
 
     def set_corpus(self, corpus):
         self.corpus = corpus
@@ -52,6 +60,56 @@ class TfidfRepresentationSpace(object):
         if self.document_matrix is None:
             self.document_matrix = self.get_vectorizer().fit_transform(self.corpus)
         return self.document_matrix
+
+    def similarity(self, document1, document2):
+        if self.vectorizer is not None:
+            return self.similarity(self.get_vectorizer().transform(document1, True),
+                                   self.get_vectorizer().transform(document2, True))
+        else:
+            raise Exception('No vectorizer with documents is set up')
+
+    def get_count(self):
+        if self.count is None:
+            count = 0
+
+            # find minimal similarity in corpus (between all documents in corpus)
+
+            # Check for each document if the similarity with the unknown document is lower than the similarity to all other documents
+            for document in self.corpus:
+                min_incorpus_similarity = sys.maxsize
+                for similarity_document in self.corpus:
+                    if document == similarity_document:
+                        pass
+                    min_incorpus_similarity = min(min_incorpus_similarity,
+                                                  self.similarity(document, similarity_document))
+                if self.similarity(document, self.unknown_text) < min_incorpus_similarity:
+                    count += 1
+            self.count = count
+        else:
+            return self.count
+
+    def get_mean(self):
+        if self.mean is None:
+            added_similarities = 0
+            number_of_documents = 0
+            for document in self.corpus:
+                added_similarities += self.similarity(document, self.unknown_text)
+                number_of_documents += 1
+            self.mean = added_similarities / number_of_documents
+        else:
+            return self.mean
+
+            # TODO: Implement TOT_count (added count over all representation spaces)
+
+
+def cosine_similarity(vector1, vector2):
+    # TODO: Search method for cosine similarity
+    return 0
+
+
+def correlation_coefficient(vector1, vector2):
+    # TODO: Search method for correlation coefficient
+    return 0
 
 
 def may_download_training(url, prefix_dir, dir):
@@ -153,8 +211,13 @@ def build_representation_space():
         representationSpaces.append(
             TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), stopwords='english'))
         representationSpaces.append(TfidfRepresentationSpace(analyzer=analyzer, ngram_range=(1, 1), max_df=0.7))
-
+    # TODO: Set correct similarity method
     return representationSpaces
+
+
+def build_features(representationSpaces):
+    return None
+
 
 def main():
     may_download_training(train_corpora_url, data_dir, train_corpora_dir)
@@ -163,6 +226,8 @@ def main():
     representationSpaces = build_representation_space()
     representationSpaces = load_text_corpus(representationSpaces)
     set_labels(representationSpaces)
+    build_features(representationSpaces)
+
 
 if __name__ == '__main__':
     main()
