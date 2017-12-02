@@ -2,6 +2,8 @@ from sklearn.metrics import pairwise
 from scipy.stats.stats import pearsonr
 import numpy as np
 
+def similarity(vector1, vector2):
+    raise NotImplementedError('Please use an implemented distance method')
 
 def cosine_similarity(vector1, vector2):
     return pairwise.cosine_similarity(vector1, vector2)
