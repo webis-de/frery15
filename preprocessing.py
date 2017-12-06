@@ -33,8 +33,8 @@ def may_unzip_corpus(dir_zips, data_dir, train_corpora_dir):
                 # assert os.path.exists(data_dir+'/'+train_corpora_dir+'/'+file[:-4])
                 os.remove(data_dir + '/' + train_corpora_dir + '/' + file)
 
-#TODO: Change for new requirements
-def load_text_corpus(representationSpaces):
+
+def load_text_corpora(data_dir, train_corpora_dir):
     corpora = []
     for dirname in os.listdir(data_dir + '/' + train_corpora_dir):
         if not os.path.isdir(data_dir + '/' + train_corpora_dir + '/' + dirname):
@@ -43,17 +43,20 @@ def load_text_corpus(representationSpaces):
             continue
         with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'contents.json') as json_data:
             contents = yaml.load(json_data)
-            print(contents)
+            corpus = []
             for problem in contents['problems']:
                 unknown = open(
                     data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + 'unknown.txt',
                     'r').read()
-                corpus = []
+                known_documents = []
                 # TODO: should also be replaced with os.listdir
                 for _, _, files in os.walk(
                                                                                 data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
                     for file in files:
                         if file.endswith(".txt") and not file == 'unknown.txt':
-                            corpus.append(open(
+                            known_documents.append(open(
                                 data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
                                 'r').read())
+            corpus.append([known_documents, unknown])
+        corpora.append(corpus)
+    return corpora
