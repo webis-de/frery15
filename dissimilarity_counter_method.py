@@ -1,12 +1,13 @@
 import numpy as np
 
+
 # set_of_known_documents_space and unknown_document_space in representation space
 def dissimilarity_counter_method(set_of_known_documents_space, unknown_document_space, threshold, similarity_measure):
     count = 0
     for known_document in set_of_known_documents_space:
         smin = 1
         for other_known_document in set_of_known_documents_space:
-            if known_document == other_known_document:
+            if id(known_document) == id(other_known_document):
                 pass
             similarity = similarity_measure(known_document, other_known_document)
             if smin > similarity:
@@ -17,6 +18,7 @@ def dissimilarity_counter_method(set_of_known_documents_space, unknown_document_
         return True
     else:
         return False
+
 
 # Returns a random decision if there is no majority
 def dissimilarity_counter_method_voting(sets_of_known_documents_space, unknown_documents_space, threshold, similarity_measure):

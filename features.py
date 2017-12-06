@@ -15,7 +15,7 @@ def count(known_documents, unknown_document, similarity):
     for known_document in known_documents:
         min_incorpus_similarity = sys.maxsize
         for other_known_document in known_documents:
-            if known_document == other_known_document:
+            if id(known_document) == id(other_known_document):
                 pass
             min_incorpus_similarity = min(min_incorpus_similarity,
                                                   similarity(known_document, other_known_document))
