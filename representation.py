@@ -3,17 +3,31 @@ import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+character_n_grams_dict = dict()
+word_n_grams_dict = dict()
+
 
 def character_n_grams(n, document, corpus):
-    vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(n,n))
-    vectorizer = vectorizer.fit(corpus)
+    hashed_corpus = hash(str(corpus))
+    if (n, hashed_corpus) in character_n_grams_dict:
+        vectorizer = character_n_grams_dict[(n, hashed_corpus)]
+    else:
+        vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(n, n))
+        vectorizer = vectorizer.fit(corpus)
+        character_n_grams_dict[(n, hashed_corpus)] = vectorizer
     matrix = vectorizer.transform([document])
     assert matrix.max() != 0
     return matrix
 
 
 def word_n_grams(n, document, corpus, max_df=1.0, stop_words=None):
-    vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(n, n), stop_words=stop_words, max_df=max_df).fit(corpus)
+    hashed_corpus = hash(str(corpus))
+    if (n, max_df, stop_words, hashed_corpus) in character_n_grams_dict:
+        vectorizer = word_n_grams_dict[(n, max_df, stop_words, hashed_corpus)]
+    else:
+        vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(n, n), stop_words=stop_words, max_df=max_df).fit(
+            corpus)
+        word_n_grams_dict[(n, max_df, stop_words, hashed_corpus)] = vectorizer
     return vectorizer.transform([document])
 
 
