@@ -57,6 +57,6 @@ def load_text_corpora(data_dir, train_corpora_dir):
                             known_documents.append(open(
                                 data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
                                 'r').read())
-            corpus.append([known_documents, unknown])
+                corpus.append([known_documents, unknown])
         corpora.append(corpus)
     return corpora
