@@ -2,7 +2,7 @@ import unittest
 import similarity_measures
 
 
-class TestMain2(unittest.TestCase):
+class TestSimilarityMeasure(unittest.TestCase):
     def test_correlation_coefficient(self):
         a = [1,4,6]
         b = [1,2,3]
