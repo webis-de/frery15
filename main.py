@@ -18,6 +18,7 @@ def main():
     corpora = load_text_corpora(data_dir, train_corpora_dir)
 
     for corpus in corpora:
+        print('Start next corpus')
         corpus_appended = []
         for problem in corpus:
             [known_documents, unknown, _] = problem
@@ -60,6 +61,7 @@ def main():
             features.append(np.average(counts))
             X.append(features)
             Y.append(label)
+        print('Start cross-validation')
         clf = tree.DecisionTreeClassifier()
         # TODO: Use auc score
         scores = cross_val_score(clf, X, Y, cv=10, n_jobs=-1)
