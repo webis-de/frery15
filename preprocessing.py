@@ -7,6 +7,7 @@ import yaml
 import copy
 import sys
 
+
 def may_download_training(url, prefix_dir, dir):
     if not os.path.exists(prefix_dir):
         os.makedirs(prefix_dir)
@@ -41,22 +42,34 @@ def load_text_corpora(data_dir, train_corpora_dir):
             continue
         if dirname == train_corpora_dir or dirname == '.DS_Store':
             continue
-        with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'contents.json') as json_data:
-            contents = yaml.load(json_data)
-            corpus = []
-            for problem in contents['problems']:
-                unknown = open(
-                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + 'unknown.txt',
-                    'r').read()
-                known_documents = []
-                # TODO: should also be replaced with os.listdir
-                for _, _, files in os.walk(
-                                                                                data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
-                    for file in files:
-                        if file.endswith(".txt") and not file == 'unknown.txt':
-                            known_documents.append(open(
-                                data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
-                                'r').read())
-                corpus.append([known_documents, unknown])
+        with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'truth.json') as truth_data:
+
+            truth = yaml.load(truth_data)
+            truth_dict = dict()
+            for problem in truth['problems']:
+                if problem['answer'] == 'Y':
+                    truth_dict[problem['name']] = True
+                elif problem['answer'] == 'N':
+                    truth_dict[problem['name']] = False
+                else:
+                    raise Exception('Answer isn\'t Y or N')
+
+            with open(data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + 'contents.json') as json_data:
+                contents = yaml.load(json_data)
+                corpus = []
+                for problem in contents['problems']:
+                    unknown = open(
+                        data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + 'unknown.txt',
+                        'r').read()
+                    known_documents = []
+                    # TODO: should also be replaced with os.listdir
+                    for _, _, files in os.walk(
+                                                                                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/'):
+                        for file in files:
+                            if file.endswith(".txt") and not file == 'unknown.txt':
+                                known_documents.append(open(
+                                    data_dir + '/' + train_corpora_dir + '/' + dirname + '/' + problem + '/' + file,
+                                    'r').read())
+                    corpus.append([known_documents, unknown, truth_dict[problem]])
         corpora.append(corpus)
     return corpora
