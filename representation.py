@@ -23,14 +23,14 @@ def avg_stdev_words_per_sentence(document):
     words_per_sentence = []
     for sentence in document_splitted:
         words_per_sentence.append(len(sentence.split()))
-    return [np.average(words_per_sentence), np.std(words_per_sentence)]
+    return [[np.average(words_per_sentence)], [np.std(words_per_sentence)]]
 
 
 def vocabulary_diversity(document):
     document = "".join(c for c in document if c not in ':;?!.,()')
     document_splitted = document.split()
     counter = Counter(document_splitted)
-    return len(list(counter)) / len(document_splitted)
+    return [[len(list(counter)) / len(document_splitted)]]
 
 
 def avg_marks(document):
@@ -39,13 +39,17 @@ def avg_marks(document):
     marks = "".join(c for c in document if c in ',;:()!?')
     counter = Counter(marks)
     representation = []
-    for element in list(counter):
-        representation.append(counter[element]/number_of_sentences)
-    return representation
+    for element in ',;:()!?':
+        try:
+            representation.append(counter[element]/number_of_sentences)
+        except KeyError:
+            representation.append(0)
+
+    return np.reshape(representation, (np.shape(representation)[0], 1))
 
 
 def concatenation(document):
     features = avg_stdev_words_per_sentence(document)
-    features.extend(vocabulary_diversity(document))
+    features.append(vocabulary_diversity(document)[0])
     features.extend(avg_marks(document))
-    return features
+    return np.reshape(features, (np.shape(features)[0], 1))
