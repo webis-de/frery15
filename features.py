@@ -4,7 +4,7 @@ import numpy as np
 def count(known_documents, unknown_document, similarity):
     """
 
-    :param documents_in_representation_space: All known documents given in the representation space
+    :param known_documents: All known documents given in the representation space
     :param unknown_document: Unknown document given in the representation space
     :param similarity
     :return:
@@ -22,7 +22,7 @@ def count(known_documents, unknown_document, similarity):
         if min_incorpus_similarity < similarity(known_document, unknown_document):
             count += 1
 
-    count *= 1/len(known_documents)
+    count *= 1/known_documents.shape[0]
 
     return count
 
@@ -30,7 +30,7 @@ def count(known_documents, unknown_document, similarity):
 def mean(known_documents, unknown_document, similarity):
     similarities = []
     for known_document in known_documents:
-        similarity.append(similarity(known_document, unknown_document))
+        similarities.append(similarity(known_document, unknown_document))
     return np.average(similarities)
 
 
