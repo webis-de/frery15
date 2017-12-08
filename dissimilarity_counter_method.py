@@ -2,7 +2,9 @@ import numpy as np
 
 
 # set_of_known_documents_space and unknown_document_space in representation space
-def dissimilarity_counter_method(set_of_known_documents_space, unknown_document_space, threshold, similarity_measure):
+def dissimilarity_counter_method(set_of_known_documents_space, unknown_document_space, similarity_measure, threshold=None):
+    if threshold is None:
+        threshold = len(set_of_known_documents_space)/2
     count = 0
     for known_document in set_of_known_documents_space:
         smin = 1
