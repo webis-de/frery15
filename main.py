@@ -6,7 +6,6 @@ from features import count, mean
 import numpy as np
 from sklearn import tree
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import roc_auc_score, auc
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -70,14 +69,6 @@ def main():
 
         print("Print roc auc")
         scores = cross_val_score(clf, X, Y, scoring='roc_auc', cv=10, n_jobs=-1)
-        print(scores)
-        print(str(np.average(scores)))
-
-        print("Print  auc")
-        try:
-            scores = cross_val_score(clf, X, Y, scoring=auc, cv=10, n_jobs=-1)
-        except ValueError:
-            print("Plain auc doesn't work")
         print(scores)
         print(str(np.average(scores)))
 
