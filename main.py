@@ -60,13 +60,26 @@ def main():
             features.append(np.average(counts))
             X.append(features)
             Y.append(label)
-            print("Next problem")
         print('Start cross-validation')
         clf = tree.DecisionTreeClassifier()
         # TODO: Use auc score
+        print("Print accuracy")
         scores = cross_val_score(clf, X, Y, cv=10, n_jobs=-1)
         print(scores)
+        print(str(np.average(scores)))
 
+        print("Print roc auc")
+        scores = cross_val_score(clf, X, Y, scoring='roc_auc', cv=10, n_jobs=-1)
+        print(scores)
+        print(str(np.average(scores)))
+
+        print("Print  auc")
+        try:
+            scores = cross_val_score(clf, X, Y, scoring=auc, cv=10, n_jobs=-1)
+        except ValueError:
+            print("Plain auc doesn't work")
+        print(scores)
+        print(str(np.average(scores)))
 
 if __name__ == '__main__':
     main()
