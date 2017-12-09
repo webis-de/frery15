@@ -1,5 +1,4 @@
 import os
-import urllib
 import zipfile
 from sklearn.feature_extraction.text import TfidfVectorizer
 import json
@@ -7,13 +6,18 @@ import yaml
 import copy
 import sys
 
+if sys.version_info[0] >= 3:
+    from urllib.request import urlretrieve
+else:
+    from urllib import urlretrieve
+
 
 def may_download_training(url, prefix_dir, dir):
     if not os.path.exists(prefix_dir):
         os.makedirs(prefix_dir)
     if not os.path.exists(prefix_dir + '/' + dir):
         zip_file = prefix_dir + '/' + dir + '.zip'
-        filename, headers = urllib.urlretrieve(url, zip_file)
+        filename, headers = urlretrieve(url, zip_file)
 
         assert os.path.exists(zip_file)
         with zipfile.ZipFile(zip_file, "r") as z:
