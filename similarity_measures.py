@@ -22,4 +22,16 @@ def correlation_coefficient(vector1, vector2):
 def euclidean_distance(vector1, vector2):
     assert np.shape(vector1) == np.shape(vector2), "vector1: " + str(np.shape(vector1)) + " vector2: " + str(
         np.shape(vector2))
+
+    if type(vector1) is csr_matrix:
+        vector1 = np.array(vector1.todense())[0]
+    else:
+        vector1 = np.array(vector1)
+        vector1 = vector1.reshape(np.shape(vector1)[0])
+
+    if type(vector2) is csr_matrix:
+        vector2 = np.array(vector2.todense())[0]
+    else:
+        vector2 = np.array(vector2)
+        vector2 = vector2.reshape(np.shape(vector2)[0])
     return np.linalg.norm(vector1 - vector2)
