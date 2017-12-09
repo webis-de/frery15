@@ -60,6 +60,12 @@ def main():
                 features.extend(counts)
                 features.extend(means)
                 features.append(np.average(counts))
+
+                # Convert NaNs in features to 0
+                features = np.array(features)
+                where_are_NaNs = np.isnan(features)
+                features[where_are_NaNs] = 0
+
                 X.append(features)
                 Y.append(label)
             print('Start cross-validation')
