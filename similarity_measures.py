@@ -1,6 +1,7 @@
 from sklearn.metrics import pairwise
 from scipy.stats.stats import pearsonr
 import numpy as np
+from scipy.sparse.csr import csr_matrix
 
 
 def similarity(vector1, vector2):
