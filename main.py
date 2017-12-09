@@ -52,15 +52,15 @@ def main():
                 #print(dissimilarity_counter_method(known_documents_in_representation_space,
                 #                                   unknown_document_in_representation_space, threshold=threshold,
                 #                                   similarity_measure=similarity_measure))
-                for known_document_in_representation_space in known_documents_in_representation_space:
-                    counts.append(count(known_document_in_representation_space, unknown_document_in_representation_space, similarity_measure))
-                    means.append(mean(known_document_in_representation_space, unknown_document_in_representation_space, similarity_measure))
+                counts.append(count(known_documents_in_representation_space, unknown_document_in_representation_space, similarity_measure))
+                means.append(mean(known_documents_in_representation_space, unknown_document_in_representation_space, similarity_measure))
 
             features.extend(counts)
             features.extend(means)
             features.append(np.average(counts))
             X.append(features)
             Y.append(label)
+            print("Next problem")
         print('Start cross-validation')
         clf = tree.DecisionTreeClassifier()
         # TODO: Use auc score
