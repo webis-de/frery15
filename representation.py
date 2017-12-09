@@ -55,15 +55,15 @@ def avg_marks(document):
     representation = []
     for element in ',;:()!?':
         try:
-            representation.append(counter[element]/number_of_sentences)
+            representation.append([counter[element]/number_of_sentences])
         except KeyError:
-            representation.append(0)
+            representation.append([0])
 
-    return np.reshape(representation, (np.shape(representation)[0], 1))
+    return representation
 
 
 def concatenation(document):
     features = avg_stdev_words_per_sentence(document)
     features.append(vocabulary_diversity(document)[0])
     features.extend(avg_marks(document))
-    return np.reshape(features, (np.shape(features)[0], 1))
+    return np.reshape(features, (np.shape(features)[0], 1)).tolist()

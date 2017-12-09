@@ -6,6 +6,7 @@ from features import count, mean
 import numpy as np
 from sklearn import tree
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import roc_auc_score, auc
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -38,11 +39,10 @@ def main():
                                          lambda document: representation_space3(document, corpus_appended),
                                          lambda document: representation_space4(document, corpus_appended),
                                          lambda document: representation_space5(document, corpus_appended),
-                                         #lambda document: representation_space6(document),
-                                         #lambda document: representation_space7(document),
-                                         #lambda document: representation_space8(document),
-                                         #lambda document: representation_space678(document)
-                                         ]:
+                                         lambda document: representation_space6(document),
+                                         lambda document: representation_space7(document),
+                                         lambda document: representation_space8(document),
+                                         lambda document: representation_space678(document)]:
                 known_documents_in_representation_space = []
                 for known_document in known_documents:
                     known_documents_in_representation_space.append(representation_space(known_document))
