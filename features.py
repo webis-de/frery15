@@ -21,8 +21,8 @@ def count(known_documents, unknown_document, similarity):
                                                   similarity(known_document, other_known_document))
         if min_incorpus_similarity < similarity(known_document, unknown_document):
             count += 1
-
-    count *= 1/len(known_documents)
+    if len(known_documents) != 0:
+        count *= 1/len(known_documents)
 
     return count
 
