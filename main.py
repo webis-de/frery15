@@ -1,73 +1,38 @@
-from preprocessing import may_download_training, may_unzip_corpus, load_text_corpora
+from preprocessing import may_download_data, may_unzip_corpus, load_text_corpora
 from dissimilarity_counter_method import dissimilarity_counter_method
 from representation_spaces import *
 from similarity_measures import cosine_similarity, correlation_coefficient, euclidean_distance
 from features import count, mean
 import numpy as np
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
+test_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-test-corpus2-2014-04-22.zip'
+test_corpora_dir = 'pan14-authorship-verification-test-corpus2-2014-04-22'
 data_dir = 'data'
 
-def main():
-    may_download_training(train_corpora_url, data_dir, train_corpora_dir)
+
+def training_k_fold():
+    may_download_data(train_corpora_url, data_dir, train_corpora_dir)
     may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
 
     corpora = load_text_corpora(data_dir, train_corpora_dir)
 
     for corpus in corpora:
         print('Start next corpus')
-        corpus_appended = []
+        corpus_each_problem_as_one_text = []
         for problem in corpus:
             [known_documents, unknown, _] = problem
-            corpus_appended.append(unknown)
+            corpus_each_problem_as_one_text.append(unknown)
             for known_document in known_documents:
-                corpus_appended.append(known_document)
+                corpus_each_problem_as_one_text.append(known_document)
 
         for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-            print('Using similarity measure ' + similarity_measure.__name__)
-
-            X = []
-            Y = []
-            for [known_documents, unknown, label] in corpus:
-                counts = []
-                means = []
-                features = []
-
-                for representation_space in [lambda document: representation_space1(document, corpus_appended),
-                                             lambda document: representation_space2(document, corpus_appended),
-                                             lambda document: representation_space3(document, corpus_appended),
-                                             lambda document: representation_space4(document, corpus_appended),
-                                             lambda document: representation_space5(document, corpus_appended),
-                                             lambda document: representation_space6(document),
-                                             lambda document: representation_space7(document),
-                                             lambda document: representation_space8(document),
-                                             lambda document: representation_space678(document)]:
-                    known_documents_in_representation_space = []
-                    for known_document in known_documents:
-                        known_documents_in_representation_space.append(representation_space(known_document))
-                    unknown_document_in_representation_space = representation_space(unknown)
-                    threshold = None
-                    #print(dissimilarity_counter_method(known_documents_in_representation_space,
-                    #                                   unknown_document_in_representation_space, threshold=threshold,
-                    #                                   similarity_measure=similarity_measure))
-                    counts.append(count(known_documents_in_representation_space, unknown_document_in_representation_space, similarity_measure))
-                    means.append(mean(known_documents_in_representation_space, unknown_document_in_representation_space, similarity_measure))
-
-                features.extend(counts)
-                features.extend(means)
-                features.append(np.average(counts))
-
-                # Convert NaNs in features to 0
-                features = np.array(features)
-                where_are_NaNs = np.isnan(features)
-                features[where_are_NaNs] = 0
-
-                X.append(features)
-                Y.append(label)
+            X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text)
             print('Start cross-validation')
             for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
                 print("roc auc for classifier " + classifier.__class__.__name__)
@@ -76,5 +41,92 @@ def main():
                 print('Average: ' + str(np.average(scores_roc)))
                 print('Standard deviation: ' + str(np.std(scores_roc)))
 
+def training_test():
+    # training data
+    may_download_data(train_corpora_url, data_dir, train_corpora_dir)
+    may_unzip_corpus(data_dir + '/' + train_corpora_dir, data_dir, train_corpora_dir)
+
+    # test data
+    # TODO: Doesn't lie in the correct folder
+    may_download_data(test_corpora_url, data_dir, test_corpora_dir)
+    may_unzip_corpus(data_dir + '/' + test_corpora_dir, data_dir, test_corpora_dir)
+
+    train_corpora = load_text_corpora(data_dir, train_corpora_dir)
+    test_corpora = load_text_corpora(data_dir, test_corpora_dir)
+
+    for train_corpus, test_corpus in zip(train_corpora, test_corpora):
+        print('Start next corpus')
+        train_corpus_each_problem_as_one_text = []
+        for problem in train_corpus:
+            [known_documents, unknown, _] = problem
+            train_corpus_each_problem_as_one_text.append(unknown)
+            for known_document in known_documents:
+                train_corpus_each_problem_as_one_text.append(known_document)
+
+        test_corpus_each_problem_as_one_text = []
+        for problem in test_corpus:
+            [known_documents, unknown, _] = problem
+            test_corpus_each_problem_as_one_text.append(unknown)
+            for known_document in known_documents:
+                test_corpus_each_problem_as_one_text.append(known_document)
+
+        for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
+            X_train, Y_train = calculate_features_in_representation_space(train_corpus, similarity_measure,
+                                                                          train_corpus_each_problem_as_one_text)
+            X_test, Y_test = calculate_features_in_representation_space(test_corpus, similarity_measure,
+                                                                          test_corpus_each_problem_as_one_text)
+            print('Start training and test')
+            for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
+                for metric in [accuracy_score, f1_score, recall_score, precision_score]:
+                    clf = classifier.fit(X_train, X_test)
+                    predicted_labels = classifier.predict(X_test)
+                    print(metric.__name__ + ' for classifier ' + classifier.__class__.__name__ + ': ' + metric(Y_test, predicted_labels))
+
+
+def calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text):
+    print('Using similarity measure ' + similarity_measure.__name__)
+    X = []
+    Y = []
+    for [known_documents, unknown, label] in corpus:
+        counts = []
+        means = []
+        features = []
+
+        for representation_space in [lambda document: representation_space1(document, corpus_each_problem_as_one_text),
+                                     lambda document: representation_space2(document, corpus_each_problem_as_one_text),
+                                     lambda document: representation_space3(document, corpus_each_problem_as_one_text),
+                                     lambda document: representation_space4(document, corpus_each_problem_as_one_text),
+                                     lambda document: representation_space5(document, corpus_each_problem_as_one_text),
+                                     lambda document: representation_space6(document),
+                                     lambda document: representation_space7(document),
+                                     lambda document: representation_space8(document),
+                                     lambda document: representation_space678(document)]:
+            known_documents_in_representation_space = []
+            for known_document in known_documents:
+                known_documents_in_representation_space.append(representation_space(known_document))
+            unknown_document_in_representation_space = representation_space(unknown)
+            threshold = None
+            # print(dissimilarity_counter_method(known_documents_in_representation_space,
+            #                                   unknown_document_in_representation_space, threshold=threshold,
+            #                                   similarity_measure=similarity_measure))
+            counts.append(count(known_documents_in_representation_space, unknown_document_in_representation_space,
+                                similarity_measure))
+            means.append(mean(known_documents_in_representation_space, unknown_document_in_representation_space,
+                              similarity_measure))
+
+        features.extend(counts)
+        features.extend(means)
+        features.append(np.average(counts))
+
+        # Convert NaNs in features to 0
+        features = np.array(features)
+        where_are_NaNs = np.isnan(features)
+        features[where_are_NaNs] = 0
+
+        X.append(features)
+        Y.append(label)
+    return X, Y
+
+
 if __name__ == '__main__':
-    main()
+    training_test()
