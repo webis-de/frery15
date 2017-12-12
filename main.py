@@ -81,7 +81,9 @@ def training_test():
                 for metric in [roc_auc_score, accuracy_score]:
                     clf = classifier.fit(X_train, Y_train)
                     predicted_labels = classifier.predict(X_test)
-                    print(metric.__name__ + ' for classifier ' + classifier.__class__.__name__ + ': ' + metric(Y_test, predicted_labels))
+                    print(metric.__name__)
+                    print(classifier.__class__.__name__)
+                    print(metric(Y_test, predicted_labels))
 
     write_feature_dict(features_dict_folder, corpora_hash)
 
