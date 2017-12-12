@@ -24,12 +24,7 @@ def training_k_fold():
 
     for corpus in corpora:
         print('Start next corpus')
-        corpus_each_problem_as_one_text = []
-        for problem in corpus:
-            [known_documents, unknown, _] = problem
-            corpus_each_problem_as_one_text.append(unknown)
-            for known_document in known_documents:
-                corpus_each_problem_as_one_text.append(known_document)
+        corpus_each_problem_as_one_text = corpus_as_one_text(corpus)
 
         for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
             X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text)
@@ -40,6 +35,17 @@ def training_k_fold():
                 print(scores_roc)
                 print('Average: ' + str(np.average(scores_roc)))
                 print('Standard deviation: ' + str(np.std(scores_roc)))
+
+
+def corpus_as_one_text(corpus):
+    corpus_each_problem_as_one_text = []
+    for problem in corpus:
+        [known_documents, unknown, _] = problem
+        corpus_each_problem_as_one_text.append(unknown)
+        for known_document in known_documents:
+            corpus_each_problem_as_one_text.append(known_document)
+    return corpus_each_problem_as_one_text
+
 
 def training_test():
     # training data
@@ -56,19 +62,9 @@ def training_test():
 
     for train_corpus, test_corpus in zip(train_corpora, test_corpora):
         print('Start next corpus')
-        train_corpus_each_problem_as_one_text = []
-        for problem in train_corpus:
-            [known_documents, unknown, _] = problem
-            train_corpus_each_problem_as_one_text.append(unknown)
-            for known_document in known_documents:
-                train_corpus_each_problem_as_one_text.append(known_document)
 
-        test_corpus_each_problem_as_one_text = []
-        for problem in test_corpus:
-            [known_documents, unknown, _] = problem
-            test_corpus_each_problem_as_one_text.append(unknown)
-            for known_document in known_documents:
-                test_corpus_each_problem_as_one_text.append(known_document)
+        train_corpus_each_problem_as_one_text = corpus_as_one_text(train_corpus)
+        test_corpus_each_problem_as_one_text = corpus_as_one_text(test_corpus)
 
         for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
             X_train, Y_train = calculate_features_in_representation_space(train_corpus, similarity_measure,
