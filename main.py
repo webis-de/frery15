@@ -7,9 +7,10 @@ from features import count, mean
 import numpy as np
 from copy import deepcopy
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
+from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
+
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -77,7 +78,7 @@ def training_test():
                                                                           test_corpus_each_problem_as_one_text)
             print('Start training and test')
             for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
-                for metric in [accuracy_score, f1_score, recall_score, precision_score]:
+                for metric in [roc_auc_score, accuracy_score]:
                     clf = classifier.fit(X_train, Y_train)
                     predicted_labels = classifier.predict(X_test)
                     print(metric.__name__ + ' for classifier ' + classifier.__class__.__name__ + ': ' + metric(Y_test, predicted_labels))
