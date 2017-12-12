@@ -2,6 +2,8 @@ from collections import Counter
 import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+import os
+import pickle
 
 character_n_grams_dict = dict()
 word_n_grams_dict = dict()
@@ -67,3 +69,23 @@ def concatenation(document):
     features.append(vocabulary_diversity(document)[0])
     features.extend(avg_marks(document))
     return np.reshape(features, (np.shape(features)[0], 1)).tolist()
+
+
+def load_feature_dict(folder, name):
+    if os.path.exists(os.path.join(folder, str(name) + '-char.pickle')):
+        with open(os.path.join(folder, str(name) + '-char.pickle'), 'r') as file:
+            global character_n_grams_dict
+            character_n_grams_dict = pickle.load(file)
+    if os.path.exists(os.path.join(folder, str(name) + '-word.pickle')):
+        with open(os.path.join(folder, str(name) + '-word.pickle'), 'r') as file:
+            global word_n_grams_dict
+            word_n_grams_dict = pickle.load(file)
+
+
+def write_feature_dict(folder, name):
+    if not os.path.exists(os.path.join(folder, str(name) + '-char.pickle')):
+        with open(os.path.join(folder, str(name) + '-char.pickle'), 'w') as file:
+            pickle.dump(character_n_grams_dict, file)
+    if not os.path.exists(os.path.join(folder, str(name) + '-word.pickle')):
+        with open(os.path.join(folder, str(name) + '-word.pickle'), 'w') as file:
+            pickle.dump(word_n_grams_dict, file)
