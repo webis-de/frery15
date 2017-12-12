@@ -84,8 +84,8 @@ def load_feature_dict(folder, name):
 
 def write_feature_dict(folder, name):
     if not os.path.exists(os.path.join(folder, str(name) + '-char.pickle')):
-        with open(os.path.join(folder, str(name) + '-char.pickle'), 'w') as file:
+        with open(os.path.join(folder, str(name) + '-char.pickle'), 'wb') as file:
             pickle.dump(character_n_grams_dict, file)
     if not os.path.exists(os.path.join(folder, str(name) + '-word.pickle')):
-        with open(os.path.join(folder, str(name) + '-word.pickle'), 'w') as file:
+        with open(os.path.join(folder, str(name) + '-word.pickle'), 'wb') as file:
             pickle.dump(word_n_grams_dict, file)
