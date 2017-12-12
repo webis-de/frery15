@@ -74,7 +74,7 @@ def training_test():
             print('Start training and test')
             for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
                 for metric in [accuracy_score, f1_score, recall_score, precision_score]:
-                    clf = classifier.fit(X_train, X_test)
+                    clf = classifier.fit(X_train, Y_train)
                     predicted_labels = classifier.predict(X_test)
                     print(metric.__name__ + ' for classifier ' + classifier.__class__.__name__ + ': ' + metric(Y_test, predicted_labels))
 
