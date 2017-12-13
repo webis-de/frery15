@@ -187,7 +187,8 @@ def load_attribution_data(corpus_name):
                     data_sample = []
                     known_documents = []
                     for known_document in jsonhandler.trainings[author]:
-                        known_documents.append(jsonhandler.getTrainingText(author, known_document))
+                        if known_document != unknown_text:
+                            known_documents.append(jsonhandler.getTrainingText(author, known_document))
                     data_sample.append(known_documents)
                     data_sample.append(jsonhandler.getTrainingText(other_author, unknown_text))
                     data_sample.append(False)
