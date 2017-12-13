@@ -107,7 +107,7 @@ def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
     dataset = sys.argv[1]
     corpus = load_attribution_data(dataset)
-    corpora_hash = hash_corpora(corpus)
+    corpora_hash = hash_corpora([corpus])
 
     load_feature_dict(features_dict_folder, corpora_hash)
 
