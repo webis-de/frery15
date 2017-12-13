@@ -79,7 +79,7 @@ class TfidfRepresentationSpace(object):
                 min_incorpus_similarity = sys.maxsize
                 for similarity_document in self.corpus:
                     if document == similarity_document:
-                        pass
+                        continue
                     min_incorpus_similarity = min(min_incorpus_similarity,
                                                   self.similarity(document, similarity_document))
                 if self.similarity(document, self.unknown_text) < min_incorpus_similarity:

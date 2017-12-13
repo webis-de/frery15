@@ -10,7 +10,7 @@ def dissimilarity_counter_method(set_of_known_documents_space, unknown_document_
         smin = 1
         for other_known_document in set_of_known_documents_space:
             if id(known_document) == id(other_known_document):
-                pass
+                continue
             similarity = similarity_measure(known_document, other_known_document)
             if smin > similarity:
                 smin = similarity

@@ -209,7 +209,7 @@ def load_attribution_data(corpus_name):
         for author in candidates:
             for other_author in candidates:
                 if author == other_author:
-                    pass
+                    continue
                 for unknown_text in jsonhandler.trainings[other_author]:
                     data_sample = []
                     known_documents = []
@@ -230,8 +230,10 @@ def load_attribution_data(corpus_name):
                 data_sample.append(jsonhandler.getTrainingText(author, unknown))
                 data_sample.append(True)
                 corpus.append(data_sample)
-        with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
-            pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+        # Another run of the program could have written the corpus
+        if not os.path.exists(os.path.join('corpora_texts', dataset)):
+            with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
+                pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
     else:
         with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
             corpus = pickle.load(pickle_file)
