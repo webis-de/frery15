@@ -99,9 +99,10 @@ def training_test():
                     print(classifier.__class__.__name__)
                     print(metric(Y_test, predicted_labels))
 
+
 def do_attribution():
-    for dataset in [attribution_dataset_dirs[2]]:#attribution_dataset_dirs:
-        corpus = load_attribution_data(attribution_dataset_dirs[2])
+    for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
+        corpus = load_attribution_data(dataset)
         for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
             X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
             X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
