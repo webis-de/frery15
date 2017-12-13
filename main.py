@@ -100,11 +100,15 @@ def training_test():
                     print(classifier.__class__.__name__)
                     print(metric(Y_test, predicted_labels))
 
+    write_feature_dict(features_dict_folder, corpora_hash)
+
 
 def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
     dataset = sys.argv[1]
     corpus = load_attribution_data(dataset)
+    corpora_hash = hash_corpora(corpus)
+
     load_feature_dict(features_dict_folder, corpora_hash)
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
@@ -121,6 +125,8 @@ def do_attribution():
                     print(metric(Y_test, predicted_labels))
                 except ValueError as e:
                     print(e)
+
+    write_feature_dict(features_dict_folder, corpora_hash)
 
 
 def calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text):
