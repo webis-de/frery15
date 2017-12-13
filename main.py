@@ -6,7 +6,7 @@ from representation import load_feature_dict, write_feature_dict
 from features import count, mean
 import numpy as np
 from copy import deepcopy
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
@@ -99,7 +99,23 @@ def training_test():
                     print(classifier.__class__.__name__)
                     print(metric(Y_test, predicted_labels))
 
-    write_feature_dict(features_dict_folder, corpora_hash)
+def do_attribution():
+    for dataset in [attribution_dataset_dirs[2]]:#attribution_dataset_dirs:
+        corpus = load_attribution_data(attribution_dataset_dirs[2])
+        for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
+            X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
+            X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
+            print('Start training and test')
+            for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
+                for metric in [roc_auc_score, accuracy_score]:
+                    clf = classifier.fit(X_train, Y_train)
+                    predicted_labels = classifier.predict(X_test)
+                    print(metric.__name__)
+                    print(classifier.__class__.__name__)
+                    try:
+                        print(metric(Y_test, predicted_labels))
+                    except ValueError as e:
+                        print(e)
 
 
 def calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text):
@@ -212,4 +228,4 @@ def load_attribution_data(corpus_name):
 
 
 if __name__ == '__main__':
-    training_test()
+    do_attribution()
