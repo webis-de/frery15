@@ -185,7 +185,7 @@ def load_attribution_data(corpus_name):
     dataset = attribution_dataset_data_dir + '/' + corpus_name
 
     if not os.path.exists(os.path.join('corpora_texts', dataset)):
-        if not os.path.exists(os.path.join('corpora_texts')):
+        if not os.path.exists('corpora_texts'):
             os.makedirs('corpora_texts')
         candidates = jsonhandler.candidates
         unknowns = jsonhandler.unknowns
