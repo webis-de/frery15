@@ -10,6 +10,9 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
+import jsonhandler
+import pickle
+import os
 
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
@@ -18,6 +21,17 @@ test_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-lab
 test_corpora_dir = 'pan14-authorship-verification-test-corpus2-2014-04-22'
 data_dir = 'data'
 features_dict_folder = 'features_dict'
+
+attribution_dataset_data_dir = '../authorship-attribution'
+attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small-2015-10-20',
+                            'pan11-authorship-attribution-training-dataset-large-2015-10-20',
+                            'pan12-authorship-attribution-training-dataset-problem-a-2015-10-20',
+                            'pan12-authorship-attribution-training-dataset-problem-b-2015-10-20',
+                            'pan12-authorship-attribution-training-dataset-problem-c-2015-10-20',
+                            'pan12-authorship-attribution-training-dataset-problem-d-2015-10-20',
+                            'pan12-authorship-attribution-training-dataset-problem-i-2015-10-20',
+                            'pan12-authorship-attribution-training-dataset-problem-j-2015-10-20',
+                            'stamatatos06-authorship-attribution-training-dataset-c10-2015-10-20']
 
 
 def training_k_fold():
@@ -148,6 +162,52 @@ def corpus_as_one_text(corpus):
         for known_document in known_documents:
             corpus_each_problem_as_one_text.append(known_document)
     return corpus_each_problem_as_one_text
+
+
+def load_attribution_data(corpus_name):
+    dataset = attribution_dataset_data_dir + '/' + corpus_name
+
+    if not os.path.exists(os.path.join('corpora_texts', dataset)):
+        if not os.path.exists(os.path.join('corpora_texts')):
+            os.makedirs('corpora_texts')
+        candidates = jsonhandler.candidates
+        unknowns = jsonhandler.unknowns
+        jsonhandler.loadJson(dataset)
+        jsonhandler.loadTraining()
+        corpus = []
+        for cand in candidates:
+            for file in jsonhandler.trainings[cand]:
+                # Get content of training file 'file' of candidate 'cand' as a string with:
+                text = jsonhandler.getTrainingText(cand, file)
+        for author in candidates:
+            for other_author in candidates:
+                if author == other_author:
+                    pass
+                for unknown_text in jsonhandler.trainings[other_author]:
+                    data_sample = []
+                    known_documents = []
+                    for known_document in jsonhandler.trainings[author]:
+                        known_documents.append(jsonhandler.getTrainingText(author, known_document))
+                    data_sample.append(known_documents)
+                    data_sample.append(jsonhandler.getTrainingText(other_author, unknown_text))
+                    data_sample.append(False)
+                    corpus.append(data_sample)
+            for unknown in jsonhandler.trainings[author]:
+                data_sample = []
+                known_documents = []
+                for known_document in jsonhandler.trainings[author]:
+                    if unknown != known_document:
+                        known_documents.append(jsonhandler.getTrainingText(author, known_document))
+                data_sample.append(known_documents)
+                data_sample.append(jsonhandler.getTrainingText(author, unknown))
+                data_sample.append(True)
+                corpus.append(data_sample)
+        with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
+            pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+    else:
+        with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
+            corpus = pickle.load(pickle_file)
+    return corpus
 
 
 if __name__ == '__main__':
