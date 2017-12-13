@@ -13,6 +13,7 @@ from sklearn.svm import SVC
 import jsonhandler
 import pickle
 import os
+import sys
 
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
@@ -101,22 +102,25 @@ def training_test():
 
 
 def do_attribution():
-    for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
-        corpus = load_attribution_data(dataset)
-        for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-            X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
-            X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
-            print('Start training and test')
-            for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
-                for metric in [roc_auc_score, accuracy_score]:
-                    clf = classifier.fit(X_train, Y_train)
-                    predicted_labels = classifier.predict(X_test)
-                    print(metric.__name__)
-                    print(classifier.__class__.__name__)
-                    try:
-                        print(metric(Y_test, predicted_labels))
-                    except ValueError as e:
-                        print(e)
+    #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
+    dataset = sys.argv[1]
+    corpus = load_attribution_data(dataset)
+    load_feature_dict(features_dict_folder, corpora_hash)
+
+    for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
+        X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
+        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
+        print('Start training and test')
+        for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
+            for metric in [roc_auc_score, accuracy_score]:
+                clf = classifier.fit(X_train, Y_train)
+                predicted_labels = classifier.predict(X_test)
+                print(metric.__name__)
+                print(classifier.__class__.__name__)
+                try:
+                    print(metric(Y_test, predicted_labels))
+                except ValueError as e:
+                    print(e)
 
 
 def calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text):
