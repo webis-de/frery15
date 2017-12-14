@@ -14,6 +14,7 @@ import jsonhandler
 import pickle
 import os
 import sys
+import pandas as pd
 
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
@@ -33,6 +34,9 @@ attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small
                             'pan12-authorship-attribution-training-dataset-problem-i-2015-10-20',
                             'pan12-authorship-attribution-training-dataset-problem-j-2015-10-20',
                             'stamatatos06-authorship-attribution-training-dataset-c10-2015-10-20']
+
+attribution_corpus = []
+attribution_corpus_as_one_text = []
 
 
 def training_k_fold():
@@ -68,7 +72,7 @@ def training_test():
 
     # test data
     # TODO: Doesn't lie in the correct folder
-    may_download_data(test_corpora_url, data_dir, test_corpora_dir)
+    #may_download_data(test_corpora_url, data_dir, test_corpora_dir)
     may_unzip_corpus(data_dir + '/' + test_corpora_dir, data_dir, test_corpora_dir)
 
     train_corpora = load_text_corpora(data_dir, train_corpora_dir)
@@ -107,12 +111,18 @@ def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
     dataset = sys.argv[1]
     corpus = load_attribution_data(dataset)
-    corpora_hash = hash_corpora([corpus])
+    corpora_hash = dataset
 
+    global attribution_corpus, attribution_corpus_as_one_text
     load_feature_dict(features_dict_folder, corpora_hash)
 
+    corpus_one_text = corpus_as_one_text(corpus)
+
+    attribution_corpus_as_one_text = corpus_as_one_text
+    attribution_corpus = corpus
+
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
+        X, Y = calculate_features_in_representation_space(similarity_measure)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
         print('Start training and test')
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
@@ -174,6 +184,7 @@ def calculate_features_in_representation_space(corpus, similarity_measure, corpu
     return X, Y
 
 
+@lru_cache(maxsize=128)
 def hash_corpora(corpora):
     corpora_as_one_text = []
     for corpus in corpora:
@@ -181,6 +192,7 @@ def hash_corpora(corpora):
     return hash(str(corpora_as_one_text))
 
 
+@lru_cache(maxsize=128)
 def corpus_as_one_text(corpus):
     corpus_each_problem_as_one_text = []
     for problem in corpus:
@@ -237,7 +249,7 @@ def load_attribution_data(corpus_name):
     else:
         with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
             corpus = pickle.load(pickle_file)
-    return corpus
+    return pd.DataFrame(corpus)
 
 
 if __name__ == '__main__':

@@ -4,35 +4,55 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os
 import pickle
+from functools import lru_cache
 
 character_n_grams_dict = dict()
 word_n_grams_dict = dict()
 
 
+@lru_cache(maxsize=128)
 def character_n_grams(n, document, corpus):
-    hashed_corpus = hash(str(corpus))
+    hashed_corpus = hash_corpus(corpus)
     if (n, hashed_corpus) in character_n_grams_dict:
         vectorizer = character_n_grams_dict[(n, hashed_corpus)]
     else:
-        vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(n, n))
-        vectorizer = vectorizer.fit(corpus)
+        vectorizer = vectorize_character_n_grams(corpus, n)
         character_n_grams_dict[(n, hashed_corpus)] = vectorizer
     matrix = vectorizer.transform([document])
     assert matrix.max() != 0
     return matrix
 
+@lru_cache(maxsize=256)
+def vectorize_character_n_grams(corpus, n):
+    vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(n, n))
+    vectorizer = vectorizer.fit(corpus)
+    return vectorizer
 
+
+@lru_cache(maxsize=256)
+def hash_corpus(corpus):
+    return hash(str(corpus))
+
+
+@lru_cache(maxsize=128)
 def word_n_grams(n, document, corpus, max_df=1.0, stop_words=None):
     hashed_corpus = hash(str(corpus))
     if (n, max_df, stop_words, hashed_corpus) in character_n_grams_dict:
         vectorizer = word_n_grams_dict[(n, max_df, stop_words, hashed_corpus)]
     else:
-        vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(n, n), stop_words=stop_words, max_df=max_df).fit(
-            corpus)
+        vectorizer = vectorize_word_n_grams(corpus, max_df, n, stop_words)
         word_n_grams_dict[(n, max_df, stop_words, hashed_corpus)] = vectorizer
     return vectorizer.transform([document])
 
 
+@lru_cache(maxsize=256)
+def vectorize_word_n_grams(corpus, max_df, n, stop_words):
+    vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(n, n), stop_words=stop_words, max_df=max_df).fit(
+        corpus)
+    return vectorizer
+
+
+@lru_cache(maxsize=1024)
 def avg_stdev_words_per_sentence(document):
     document_splitted = re.split('. |! |\? ', document)
     # TODO: Maybe remove newlines
@@ -42,6 +62,7 @@ def avg_stdev_words_per_sentence(document):
     return [[np.average(words_per_sentence)], [np.std(words_per_sentence)]]
 
 
+@lru_cache(maxsize=1024)
 def vocabulary_diversity(document):
     document = "".join(c for c in document if c not in ':;?!.,()')
     document_splitted = document.split()
@@ -49,6 +70,7 @@ def vocabulary_diversity(document):
     return [[len(list(counter)) / len(document_splitted)]]
 
 
+@lru_cache(maxsize=1024)
 def avg_marks(document):
     document_splitted = document.split('.')
     number_of_sentences = len(document_splitted)
@@ -64,6 +86,7 @@ def avg_marks(document):
     return representation
 
 
+@lru_cache(maxsize=1024)
 def concatenation(document):
     features = avg_stdev_words_per_sentence(document)
     features.append(vocabulary_diversity(document)[0])
