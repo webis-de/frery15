@@ -243,10 +243,6 @@ def load_attribution_data(corpus_name):
         jsonhandler.loadJson(dataset)
         jsonhandler.loadTraining()
         corpus = []
-        for cand in candidates:
-            for file in jsonhandler.trainings[cand]:
-                # Get content of training file 'file' of candidate 'cand' as a string with:
-                text = jsonhandler.getTrainingText(cand, file)
         for author in candidates:
             for other_author in candidates:
                 if author == other_author:
