@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 
+
 def count(known_documents, unknown_document, similarity):
     """
 

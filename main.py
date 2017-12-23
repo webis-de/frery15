@@ -14,6 +14,8 @@ import jsonhandler
 import pickle
 import os
 import sys
+import pandas as pd
+from multiprocessing import Pool
 
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
@@ -33,6 +35,7 @@ attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small
                             'pan12-authorship-attribution-training-dataset-problem-i-2015-10-20',
                             'pan12-authorship-attribution-training-dataset-problem-j-2015-10-20',
                             'stamatatos06-authorship-attribution-training-dataset-c10-2015-10-20']
+
 
 
 def training_k_fold():
@@ -111,22 +114,46 @@ def do_attribution():
 
     load_feature_dict(features_dict_folder, corpora_hash)
 
-    for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
-        print('Start training and test')
-        for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
-            for metric in [roc_auc_score, accuracy_score]:
-                clf = classifier.fit(X_train, Y_train)
-                predicted_labels = classifier.predict(X_test)
-                print(metric.__name__)
-                print(classifier.__class__.__name__)
-                try:
-                    print(metric(Y_test, predicted_labels))
-                except ValueError as e:
-                    print(e)
+    corpus_one_text = corpus_as_one_text(corpus)
 
+    attribution_corpus_as_one_text = corpus_as_one_text
+    attribution_corpus = corpus
+
+    p = Pool(3)
+
+    results = []
+    for args in [(corpus, cosine_similarity), (corpus, correlation_coefficient), (corpus, euclidean_distance)]:
+        results.append(p.apply_async(calculate_features_and_train, args))
+    for result in results:
+        result.get()
     write_feature_dict(features_dict_folder, corpora_hash)
+
+
+def calculate_features_and_train(corpus, similarity_measure):
+    #corpus, similarity_measure = args
+    X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
+
+    p = Pool(3)
+    results = []
+    for args in [(X_test, X_train, Y_test, Y_train, DecisionTreeClassifier(), similarity_measure.__name__),
+                 (X_test, X_train, Y_test, Y_train, SVC(kernel='rbf'), similarity_measure.__name__),
+                 (X_test, X_train, Y_test, Y_train, SVC(kernel='linear'), similarity_measure.__name__)]:
+        results.append(p.apply_async(train_and_predict, args))
+    for result in results:
+        result.get()
+
+
+def train_and_predict(X_test, X_train, Y_test, Y_train, classifier, similarity_measure_name):
+    clf = classifier.fit(X_train, Y_train)
+    predicted_labels = classifier.predict(X_test)
+    for metric in [roc_auc_score, accuracy_score]:
+        with open(sys.argv[1] + "-" + similarity_measure_name + "-" + classifier.__class__.__name__, "w") as file:
+            file.write(metric.__name__)
+            try:
+                file.write(metric(Y_test, predicted_labels))
+            except ValueError as e:
+                file.write(e)
 
 
 def calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text):
@@ -138,6 +165,9 @@ def calculate_features_in_representation_space(corpus, similarity_measure, corpu
         means = []
         features = []
 
+        p = Pool(9)
+
+        results = []
         for representation_space in [lambda document: representation_space1(document, corpus_each_problem_as_one_text),
                                      lambda document: representation_space2(document, corpus_each_problem_as_one_text),
                                      lambda document: representation_space3(document, corpus_each_problem_as_one_text),
@@ -147,18 +177,14 @@ def calculate_features_in_representation_space(corpus, similarity_measure, corpu
                                      lambda document: representation_space7(document),
                                      lambda document: representation_space8(document),
                                      lambda document: representation_space678(document)]:
-            known_documents_in_representation_space = []
-            for known_document in known_documents:
-                known_documents_in_representation_space.append(representation_space(known_document))
-            unknown_document_in_representation_space = representation_space(unknown)
-            threshold = None
-            # print(dissimilarity_counter_method(known_documents_in_representation_space,
-            #                                   unknown_document_in_representation_space, threshold=threshold,
-            #                                   similarity_measure=similarity_measure))
-            counts.append(count(known_documents_in_representation_space, unknown_document_in_representation_space,
-                                similarity_measure))
-            means.append(mean(known_documents_in_representation_space, unknown_document_in_representation_space,
-                              similarity_measure))
+            results.append(p.apply_async(lambda x: calculate_count_and_mean(known_documents, representation_space, x, unknown), [representation_space]))
+
+        intermediate_count= []
+        intermediate_mean = []
+        for result in results:
+            count, mean = result.get()
+            intermediate_count.append(count)
+            intermediate_mean.append(mean)
 
         features.extend(counts)
         features.extend(means)
@@ -172,6 +198,21 @@ def calculate_features_in_representation_space(corpus, similarity_measure, corpu
         X.append(features)
         Y.append(label)
     return X, Y
+
+
+def calculate_count_and_mean(known_documents, representation_space, similarity_measure, unknown):
+    known_documents_in_representation_space = []
+    for known_document in known_documents:
+        known_documents_in_representation_space.append(representation_space(known_document))
+    unknown_document_in_representation_space = representation_space(unknown)
+    threshold = None
+    # print(dissimilarity_counter_method(known_documents_in_representation_space,
+    #                                   unknown_document_in_representation_space, threshold=threshold,
+    #                                   similarity_measure=similarity_measure))
+    return count(known_documents_in_representation_space, unknown_document_in_representation_space,
+                 similarity_measure), mean(known_documents_in_representation_space,
+                                           unknown_document_in_representation_space,
+                                           similarity_measure)
 
 
 def hash_corpora(corpora):
