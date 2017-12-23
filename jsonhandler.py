@@ -88,7 +88,8 @@ def loadTraining():
         trainings[cand] = []
         for subdir, dirs, files in os.walk(os.path.join(corpusdir, cand)):
             for doc in files:
-                trainings[cand].append(doc)
+                if '.txt' == doc[-4:]:
+                    trainings[cand].append(doc)
 
 # get training text 'fname' from candidate 'cand' (obtain values from
 # 'trainings', see example above)
