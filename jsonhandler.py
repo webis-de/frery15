@@ -109,7 +109,10 @@ def pickleTransformedTrainingText(cand, fname, content, transformation_name):
 
 
 def loadTransformedTrainingText(cand, fname, transformation_name):
-    return pickle.load(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'))
+    file = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), 'rb')
+    result = pickle.load(file)
+    file.close()
+    return result
 
 
 def existTransformedTrainingText(cand, fname, transformation_name):
