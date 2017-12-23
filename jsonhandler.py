@@ -103,7 +103,7 @@ def getTrainingText(cand, fname):
 
 
 def pickleTransformedTrainingText(cand, fname, content, transformation_name):
-    dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "w")
+    dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
     pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
     dfile.close()
 
