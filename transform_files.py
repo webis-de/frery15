@@ -22,6 +22,12 @@ def transform_data():
     jsonhandler.loadJson(dataset)
     jsonhandler.loadTraining()
 
+    corpus = []
+    for author in candidates:
+        for file in jsonhandler.trainings[author]:
+            corpus.append(jsonhandler.getTrainingText(author, file))
+    for unknown in unknowns:
+        corpus.append(jsonhandler.getUnknownText(unknown))
 
     corpus_file = open(os.path.join(dataset,'all_text_files.pickle'), "wb")
     pickle.dump(corpus, corpus_file, protocol=pickle.HIGHEST_PROTOCOL)
