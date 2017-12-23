@@ -56,6 +56,7 @@ loadGroundTruth()
 import os
 import json
 import codecs
+import pickle
 
 META_FNAME = "meta-file.json"
 OUT_FNAME = "answers.json"
@@ -98,6 +99,20 @@ def getTrainingText(cand, fname):
     s = dfile.read()
     dfile.close()
     return s
+
+
+def pickleTransformedTrainingText(cand, fname, content, transformation_name):
+    dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "w")
+    pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
+    dfile.close()
+
+
+def loadTransformedTrainingText(cand, fname, transformation_name):
+    return pickle.load(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'))
+
+
+def existTransformedTrainingText(cand, fname, transformation_name):
+    return os.path.exists(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'))
 
 # get training file as bytearray
 
