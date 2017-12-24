@@ -37,8 +37,11 @@ def transform_data():
     for author in candidates:
         for file in jsonhandler.trainings[author]:
             args.append((author, file, dataset))
-    result = pool.map_async(transform_write_text, args).get()
     # TODO: Also for unknown texts
+    author = 'unknown'
+    for file in unknowns:
+        args.append((author, file, dataset))
+    result = pool.map_async(transform_write_text, args).get()
     #result.wait()
     pool.close()
     pool.join()
@@ -48,7 +51,10 @@ def transform_data():
 def transform_write_text(arg):
     (author, file, dataset) = arg
     jsonhandler.loadJson(dataset)
-    text = jsonhandler.getTrainingText(author, file)
+    if author != 'unknown':
+        text = jsonhandler.getTrainingText(author, file)
+    else:
+        text = jsonhandler.getUnknownText(file)
     corpus_file = open(os.path.join(dataset, 'all_text_files.pickle'), "rb")
     corpus = pickle.load(corpus_file)
     corpus_file.close()

@@ -101,7 +101,7 @@ def getTrainingText(cand, fname):
     dfile.close()
     return s
 
-
+# TODO: Could generalize for also unknowns
 def pickleTransformedTrainingText(cand, fname, content, transformation_name):
     dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
     pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
