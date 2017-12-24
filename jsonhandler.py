@@ -175,6 +175,17 @@ def loadGroundTruth():
     for i in range(len(tjson["ground-truth"])):
         trueAuthors.append(tjson["ground-truth"][i]["true-author"])
 
+def reset_state():
+    global encoding, language, corpusdir, upath, candidates, unknowns, trainings, trueAuthors
+    encoding = ""
+    language = ""
+    corpusdir = ""
+    upath = ""
+    candidates = []
+    unknowns = []
+    trainings = {}
+    trueAuthors = []
+
 # initialization of global variables
 encoding = ""
 language = ""
