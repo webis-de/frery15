@@ -1,3 +1,5 @@
+from multiprocessing.pool import Pool
+from multiprocessing import cpu_count
 from preprocessing import may_download_data, may_unzip_corpus, load_text_corpora
 from dissimilarity_counter_method import dissimilarity_counter_method
 from representation_spaces import *
@@ -105,14 +107,15 @@ def training_test():
 
 def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
-    dataset = sys.argv[1]
-    corpus = load_attribution_data(dataset)
-    corpora_hash = hash_corpora([corpus])
+    corpus_name = sys.argv[1]
+    print('Load attribution data')
+    corpus = load_attribution_data(corpus_name)
+    dataset = attribution_dataset_data_dir + '/' + corpus_name
 
-    load_feature_dict(features_dict_folder, corpora_hash)
+    #load_feature_dict(features_dict_folder, corpora_hash)
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        X, Y = calculate_features_in_representation_space(corpus, similarity_measure, corpus_as_one_text(corpus))
+        X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure, dataset)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
         print('Start training and test')
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
@@ -126,7 +129,68 @@ def do_attribution():
                 except ValueError as e:
                     print(e)
 
-    write_feature_dict(features_dict_folder, corpora_hash)
+    #write_feature_dict(features_dict_folder, corpora_hash)
+
+
+def calculate_attribution_features_in_representation_space(corpus, similarity_measure, dataset):
+    jsonhandler.reset_state()
+    jsonhandler.loadJson(dataset)
+
+    print('Using similarity measure ' + similarity_measure.__name__)
+    X = []
+    Y = []
+
+    args = []
+    for element in corpus:
+        args.append((similarity_measure, element))
+
+    pool = Pool(processes=cpu_count()-2)
+    results = pool.map_async(calculate_features, args).get()
+    for (features, label) in results:
+        X.append(features)
+        Y.append(label)
+    print("Calculated features")
+    pool.close()
+    pool.join()
+    jsonhandler.reset_state()
+    return X, Y
+
+
+def calculate_features(args):
+    (similarity_measure, (known_documents, unknown, label)) = args
+    counts = []
+    means = []
+    features = []
+    for representation_space in [representation_space1, representation_space2, representation_space3,
+                                 representation_space4, representation_space5, representation_space6,
+                                 representation_space7, representation_space8, representation_space678]:
+        known_documents_in_representation_space = []
+        for known_document in known_documents:
+            (author, textfile) = known_document
+            known_documents_in_representation_space.append(
+                jsonhandler.loadTransformedTrainingText(author, textfile, representation_space.__name__))
+        (author, textfile) = unknown
+        unknown_document_in_representation_space = jsonhandler.loadTransformedTrainingText(author, textfile,
+                                                                                           representation_space.__name__)
+        threshold = None
+        # print(dissimilarity_counter_method(known_documents_in_representation_space,
+        #                                   unknown_document_in_representation_space, threshold=threshold,
+        #                                   similarity_measure=similarity_measure))
+        counts.append(count(known_documents_in_representation_space, unknown_document_in_representation_space,
+                            similarity_measure))
+        means.append(mean(known_documents_in_representation_space, unknown_document_in_representation_space,
+                          similarity_measure))
+    features.extend(counts)
+    features.extend(means)
+    features.append(np.average(counts))
+    # Convert NaNs in features to 0
+    features = np.array(features)
+    where_are_NaNs = np.isnan(features)
+    features[where_are_NaNs] = 0
+
+    #jsonhandler.reset_state()
+
+    return features, label
 
 
 def calculate_features_in_representation_space(corpus, similarity_measure, corpus_each_problem_as_one_text):
@@ -215,7 +279,7 @@ def load_attribution_data(corpus_name):
                     data_sample.append(known_documents)
                     data_sample.append((other_author, unknown_text))
                     data_sample.append(False)
-                    corpus.append(data_sample)
+                    corpus.append((data_sample))
             for unknown in jsonhandler.trainings[author]:
                 data_sample = []
                 known_documents = []
@@ -225,7 +289,7 @@ def load_attribution_data(corpus_name):
                 data_sample.append(known_documents)
                 data_sample.append((author, unknown))
                 data_sample.append(True)
-                corpus.append(data_sample)
+                corpus.append((data_sample))
         # Another run of the program could have written the corpus
         if not os.path.exists(os.path.join('corpora_texts', dataset)):
             with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
