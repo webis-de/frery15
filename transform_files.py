@@ -1,6 +1,6 @@
 import os
 import jsonhandler
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from representation_spaces import *
 from main import attribution_dataset_data_dir
 import sys
@@ -12,7 +12,7 @@ def transform_data():
     assert corpus_name != ''
     dataset = attribution_dataset_data_dir + '/' + corpus_name
 
-    pool = Pool(processes=30)
+    pool = Pool(processes=cpu_count()-2)
 
     #if not os.path.exists(os.path.join('corpora_texts', dataset)):
     #    if not os.path.exists('corpora_texts'):
@@ -82,13 +82,6 @@ def transform_write_text(arg):
     if not os.path.exists(os.path.join(dataset, author, file+'_'+representation_space1.__name__+'.pickle')):
         raise FileNotFoundError("Ahh")
 
-    jsonhandler.encoding = ""
-    jsonhandler.language = ""
-    jsonhandler.corpusdir = ""
-    jsonhandler.upath = ""
-    jsonhandler.candidates = []
-    jsonhandler.unknowns = []
-    jsonhandler.trainings = {}
-    jsonhandler.trueAuthors = []
+    jsonhandler.reset_state()
 
 transform_data()
