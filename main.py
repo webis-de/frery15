@@ -211,9 +211,9 @@ def load_attribution_data(corpus_name):
                     known_documents = []
                     for known_document in jsonhandler.trainings[author]:
                         if known_document != unknown_text:
-                            known_documents.append(jsonhandler.getTrainingText(author, known_document))
+                            known_documents.append((author, known_document))
                     data_sample.append(known_documents)
-                    data_sample.append(jsonhandler.getTrainingText(other_author, unknown_text))
+                    data_sample.append((other_author, unknown_text))
                     data_sample.append(False)
                     corpus.append(data_sample)
             for unknown in jsonhandler.trainings[author]:
@@ -221,9 +221,9 @@ def load_attribution_data(corpus_name):
                 known_documents = []
                 for known_document in jsonhandler.trainings[author]:
                     if unknown != known_document:
-                        known_documents.append(jsonhandler.getTrainingText(author, known_document))
+                        known_documents.append((author, known_document))
                 data_sample.append(known_documents)
-                data_sample.append(jsonhandler.getTrainingText(author, unknown))
+                data_sample.append((author, unknown))
                 data_sample.append(True)
                 corpus.append(data_sample)
         # Another run of the program could have written the corpus
