@@ -122,8 +122,12 @@ def do_attribution():
                 pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
                 dfile.close()
         else:
-            X = pickle.load(os.path.join(attribution_dataset_data_dir, dataset, 'X.pickle'))
-            Y = pickle.load(os.path.join(attribution_dataset_data_dir, dataset, 'Y.pickle'))
+            file = open(os.path.join(attribution_dataset_data_dir, dataset, 'X.pickle'), 'rb')
+            X = pickle.load(file)
+            file.close()
+            file = open(os.path.join(attribution_dataset_data_dir, dataset, 'Y.pickle'), 'rb')
+            Y = pickle.load(file)
+            file.close()
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
         print('Start training and test')
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
