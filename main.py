@@ -115,7 +115,15 @@ def do_attribution():
     #load_feature_dict(features_dict_folder, corpora_hash)
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure, dataset)
+        if not os.path.exists(os.path.join(attribution_dataset_data_dir, dataset, 'X.pickle')):
+            X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure, dataset)
+            for (content, filename) in [(X, 'X.pickle'), (Y, 'Y.pickle')]:
+                dfile = open(os.path.join(attribution_dataset_data_dir, dataset, filename), "wb")
+                pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
+                dfile.close()
+        else:
+            X = pickle.load(os.path.join(attribution_dataset_data_dir, dataset, 'X.pickle'))
+            Y = pickle.load(os.path.join(attribution_dataset_data_dir, dataset, 'Y.pickle'))
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
         print('Start training and test')
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
