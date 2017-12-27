@@ -2,7 +2,7 @@ import os
 import jsonhandler
 from multiprocessing import Pool, cpu_count
 from representation_spaces import *
-from main import attribution_dataset_data_dir
+from main import cores_to_leave_over, pickle_files_dir
 import sys
 import pickle
 import time
@@ -10,7 +10,7 @@ import time
 def transform_data():
     corpus_name = sys.argv[1]
     assert corpus_name != ''
-    dataset = attribution_dataset_data_dir + '/' + corpus_name
+    dataset = pickle_files_dir + '/' + corpus_name
 
     pool = Pool(processes=cpu_count()-2)
 

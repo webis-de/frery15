@@ -26,6 +26,7 @@ data_dir = 'data'
 features_dict_folder = 'features_dict'
 
 attribution_dataset_data_dir = sys.argv[2].split(sep='/')[-1] #'../authorship-attribution'
+pickle_files_dir = attribution_dataset_data_dir
 attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small-2015-10-20',
                             'pan11-authorship-attribution-training-dataset-large-2015-10-20',
                             'pan12-authorship-attribution-training-dataset-problem-a-2015-10-20',
@@ -110,7 +111,7 @@ def do_attribution():
     corpus_name = sys.argv[1]
     print('Load attribution data')
     corpus = load_attribution_data(corpus_name)
-    dataset = attribution_dataset_data_dir + '/' + corpus_name
+    dataset = corpus_name
 
     #load_feature_dict(features_dict_folder, corpora_hash)
 
@@ -128,20 +129,21 @@ def do_attribution():
             unknowns_corpus.append((known_documents, ('unknown', unknown), -1))
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        if not os.path.exists(os.path.join(attribution_dataset_data_dir, dataset,
+        if not os.path.exists(os.path.join(pickle_files_dir, dataset,
                                            'X_' + similarity_measure.__name__ + '.pickle')):
-            X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure, dataset)
+            X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure,
+                                                                          os.path.join(pickle_files_dir, dataset))
             for (content, filename) in [(X, 'X_' + similarity_measure.__name__ + '.pickle'),
                                         (Y, 'Y_' + similarity_measure.__name__ + '.pickle')]:
-                dfile = open(os.path.join(attribution_dataset_data_dir, dataset, filename), "wb")
+                dfile = open(os.path.join(pickle_files_dir, dataset, filename), "wb")
                 pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
                 dfile.close()
         else:
-            file = open(os.path.join(attribution_dataset_data_dir, dataset,
+            file = open(os.path.join(pickle_files_dir, dataset,
                                      'X_' + similarity_measure.__name__ + '.pickle'), 'rb')
             X = pickle.load(file)
             file.close()
-            file = open(os.path.join(attribution_dataset_data_dir, dataset,
+            file = open(os.path.join(pickle_files_dir, dataset,
                                      'Y_' + similarity_measure.__name__ + '.pickle'), 'rb')
             Y = pickle.load(file)
             file.close()
@@ -159,7 +161,8 @@ def do_attribution():
             if classifier.__class__ == SVC:
                 classifier.set_params(probability=True)
                 classifier.fit(X_train, Y_train)
-            X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure, dataset)
+            X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure,
+                                                                                   os.path.join(pickle_files_dir, dataset))
             Y_unknowns_predicted = clf.predict_proba(X_test)
 
             index_of_True = clf.classes_.index(True)
@@ -311,7 +314,7 @@ def corpus_as_one_text(corpus):
 
 
 def load_attribution_data(corpus_name):
-    dataset = attribution_dataset_data_dir + '/' + corpus_name
+    dataset = pickle_files_dir + '/' + corpus_name
 
     if not os.path.exists(os.path.join('corpora_texts', dataset)):
         if not os.path.exists('corpora_texts'):
