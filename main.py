@@ -143,6 +143,9 @@ def do_attribution():
                     print(metric(Y_test, predicted_labels))
                 except ValueError as e:
                     print(e)
+            if classifier.__class__ == SVC:
+                classifier.set_params(probability=True)
+                classifier.fit(X_train, Y_train)
 
     #write_feature_dict(features_dict_folder, corpora_hash)
 
