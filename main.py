@@ -37,6 +37,8 @@ attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small
                             'pan12-authorship-attribution-training-dataset-problem-j-2015-10-20',
                             'stamatatos06-authorship-attribution-training-dataset-c10-2015-10-20']
 
+cores_to_leave_over = 2
+
 
 def training_k_fold():
     may_download_data(train_corpora_url, data_dir, train_corpora_dir)
@@ -202,7 +204,7 @@ def calculate_attribution_features_in_representation_space(corpus, similarity_me
     for element in corpus:
         args.append((similarity_measure, element))
 
-    pool = Pool(processes=cpu_count()-2)
+    pool = Pool(processes=cpu_count()-cores_to_leave_over)
     results = pool.map_async(calculate_features, args).get()
     for (features, label) in results:
         X.append(features)

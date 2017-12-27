@@ -12,7 +12,7 @@ def transform_data():
     assert corpus_name != ''
     dataset = pickle_files_dir + '/' + corpus_name
 
-    pool = Pool(processes=cpu_count()-2)
+    pool = Pool(processes=cpu_count()-cores_to_leave_over)
 
     #if not os.path.exists(os.path.join('corpora_texts', dataset)):
     #    if not os.path.exists('corpora_texts'):
