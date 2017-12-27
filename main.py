@@ -115,17 +115,21 @@ def do_attribution():
     #load_feature_dict(features_dict_folder, corpora_hash)
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        if not os.path.exists(os.path.join(attribution_dataset_data_dir, dataset, 'X.pickle')):
+        if not os.path.exists(os.path.join(attribution_dataset_data_dir, dataset,
+                                           'X_' + similarity_measure.__name__ + '.pickle')):
             X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure, dataset)
-            for (content, filename) in [(X, 'X.pickle'), (Y, 'Y.pickle')]:
+            for (content, filename) in [(X, 'X_' + similarity_measure.__name__ + '.pickle'),
+                                        (Y, 'Y_' + similarity_measure.__name__ + '.pickle')]:
                 dfile = open(os.path.join(attribution_dataset_data_dir, dataset, filename), "wb")
                 pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
                 dfile.close()
         else:
-            file = open(os.path.join(attribution_dataset_data_dir, dataset, 'X.pickle'), 'rb')
+            file = open(os.path.join(attribution_dataset_data_dir, dataset,
+                                     'X_' + similarity_measure.__name__ + '.pickle'), 'rb')
             X = pickle.load(file)
             file.close()
-            file = open(os.path.join(attribution_dataset_data_dir, dataset, 'Y.pickle'), 'rb')
+            file = open(os.path.join(attribution_dataset_data_dir, dataset,
+                                     'Y_' + similarity_measure.__name__ + '.pickle'), 'rb')
             Y = pickle.load(file)
             file.close()
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
