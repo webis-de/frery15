@@ -16,7 +16,7 @@ import jsonhandler
 import pickle
 import os
 import sys
-from transform_files import transform_data
+import transform_files
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -356,5 +356,5 @@ def load_attribution_data(corpus_name):
 
 
 if __name__ == '__main__':
-    transform_data()
+    transform_files.transform_data()
     do_attribution()
