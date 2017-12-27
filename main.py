@@ -114,6 +114,19 @@ def do_attribution():
 
     #load_feature_dict(features_dict_folder, corpora_hash)
 
+    candidates = jsonhandler.candidates
+
+    unknowns = jsonhandler.unknowns
+
+    unknowns_corpus = []
+    for unknown in unknowns:
+        # Alle Texte für die jeweiligen Autoren zusammensammeln und das für jedes unknown
+        for candidate in candidates:
+            known_documents = []
+            for file in jsonhandler.trainings[candidate]:
+                known_documents.append((candidate, file))
+            unknowns_corpus.append((known_documents, ('unknown', unknown), -1))
+
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
         if not os.path.exists(os.path.join(attribution_dataset_data_dir, dataset,
                                            'X_' + similarity_measure.__name__ + '.pickle')):
