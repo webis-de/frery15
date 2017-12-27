@@ -2,7 +2,7 @@ import os
 import jsonhandler
 from multiprocessing import Pool, cpu_count
 from representation_spaces import *
-from main import cores_to_leave_over, pickle_files_dir
+from main import cores_to_leave_over, pickle_files_dir, attribution_dataset_data_dir
 import sys
 import pickle
 import time
@@ -10,7 +10,6 @@ import time
 def transform_data():
     corpus_name = sys.argv[1]
     assert corpus_name != ''
-    dataset = pickle_files_dir + '/' + corpus_name
 
     pool = Pool(processes=cpu_count()-cores_to_leave_over)
 
@@ -19,7 +18,7 @@ def transform_data():
     #        os.makedirs('corpora_texts')
     candidates = jsonhandler.candidates
     unknowns = jsonhandler.unknowns
-    jsonhandler.loadJson(dataset)
+    jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
     jsonhandler.loadTraining()
 
     corpus = []
@@ -29,18 +28,18 @@ def transform_data():
     for unknown in unknowns:
         corpus.append(jsonhandler.getUnknownText(unknown))
 
-    corpus_file = open(os.path.join(dataset,'all_text_files.pickle'), "wb")
+    corpus_file = open(os.path.join(pickle_files_dir, corpus_name, 'all_text_files.pickle'), "wb")
     pickle.dump(corpus, corpus_file, protocol=pickle.HIGHEST_PROTOCOL)
     corpus_file.close()
 
     args = []
     for author in candidates:
         for file in jsonhandler.trainings[author]:
-            args.append((author, file, dataset))
+            args.append((author, file, pickle_files_dir, corpus_name))
     # TODO: Also for unknown texts
     author = 'unknown'
     for file in unknowns:
-        args.append((author, file, dataset))
+        args.append((author, file, pickle_files_dir, corpus_name))
     result = pool.map_async(transform_write_text, args).get()
     #result.wait()
     pool.close()
@@ -49,13 +48,13 @@ def transform_data():
 
 
 def transform_write_text(arg):
-    (author, file, dataset) = arg
+    (author, file, pickle_files_dir, corpus_name) = arg
     jsonhandler.loadJson(dataset)
     if author != 'unknown':
         text = jsonhandler.getTrainingText(author, file)
     else:
         text = jsonhandler.getUnknownText(file)
-    corpus_file = open(os.path.join(dataset, 'all_text_files.pickle'), "rb")
+    corpus_file = open(os.path.join(pickle_files_dir, corpus_name, 'all_text_files.pickle'), "rb")
     corpus = pickle.load(corpus_file)
     corpus_file.close()
     for representation_space in [representation_space6,
@@ -79,7 +78,7 @@ def transform_write_text(arg):
         else:
             print('File already exists')
             content = jsonhandler.loadTransformedTrainingText(author, file, representation_space.__name__)
-    if not os.path.exists(os.path.join(dataset, author, file+'_'+representation_space1.__name__+'.pickle')):
+    if not os.path.exists(os.path.join(pickle_files_dir, corpus_name, author, file+'_'+representation_space1.__name__+'.pickle')):
         raise FileNotFoundError("Ahh")
 
     jsonhandler.reset_state()
