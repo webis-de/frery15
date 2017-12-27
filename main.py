@@ -137,9 +137,8 @@ def do_attribution():
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
             for metric in [roc_auc_score, accuracy_score]:
                 clf = classifier.fit(X_train, Y_train)
-                print(metric.__name__)
-                print(classifier.__class__.__name__)
                 predicted_labels = clf.predict(X_test)
+                print(metric.__name__ + ' ' + classifier.__class__.__name__)
                 try:
                     print(metric(Y_test, predicted_labels))
                 except ValueError as e:
