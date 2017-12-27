@@ -159,6 +159,30 @@ def do_attribution():
             if classifier.__class__ == SVC:
                 classifier.set_params(probability=True)
                 classifier.fit(X_train, Y_train)
+            X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure, dataset)
+            Y_unknowns_predicted = clf.predict_proba(X_test)
+
+            index_of_True = clf.classes_.index(True)
+
+            predictions = []
+            predictions_one_unknown = []
+            i = 0
+            for binary_prediction in Y_unknowns_predicted:
+                predictions_one_unknown.append(binary_prediction[index_of_True])
+                if i == len(candidates) - 1:
+                    predictions.append(predictions_one_unknown)
+                    i = 0
+                    predictions_one_unknown = []
+
+            authors = []
+            scores = []
+
+            for unknown in predictions:
+                authors.append(candidate+'{:05d}'.format(unknown.index(max(unknown))))
+                scores.append(unknown[unknown.index(max(unknown))])
+
+            jsonhandler.storeJson(unknowns, authors, scores)
+
 
     #write_feature_dict(features_dict_folder, corpora_hash)
 
