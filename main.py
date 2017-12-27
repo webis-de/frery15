@@ -16,7 +16,7 @@ import jsonhandler
 import pickle
 import os
 import sys
-
+from transform_files import transform_data
 
 train_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-14/pan14-data/pan14-authorship-verification-training-corpus-2014-04-22.zip'
 train_corpora_dir = 'pan14-authorship-verification-training-corpus-2014-04-22'
@@ -25,7 +25,7 @@ test_corpora_dir = 'pan14-authorship-verification-test-corpus2-2014-04-22'
 data_dir = 'data'
 features_dict_folder = 'features_dict'
 
-attribution_dataset_data_dir = '../authorship-attribution'
+attribution_dataset_data_dir = sys.argv[2] #'../authorship-attribution'
 attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small-2015-10-20',
                             'pan11-authorship-attribution-training-dataset-large-2015-10-20',
                             'pan12-authorship-attribution-training-dataset-problem-a-2015-10-20',
@@ -181,7 +181,7 @@ def do_attribution():
                 authors.append(candidate+'{:05d}'.format(unknown.index(max(unknown))))
                 scores.append(unknown[unknown.index(max(unknown))])
 
-            jsonhandler.storeJson(unknowns, authors, scores)
+            jsonhandler.storeJson(sys.argv[3], unknowns, authors, scores)
 
 
     #write_feature_dict(features_dict_folder, corpora_hash)
@@ -356,4 +356,5 @@ def load_attribution_data(corpus_name):
 
 
 if __name__ == '__main__':
+    transform_data()
     do_attribution()
