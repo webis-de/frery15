@@ -113,7 +113,6 @@ def do_attribution():
     corpus_name = sys.argv[1]
     print('Load attribution data')
     corpus = load_attribution_data(corpus_name)
-    dataset = corpus_name
 
     #load_feature_dict(features_dict_folder, corpora_hash)
 
@@ -131,21 +130,21 @@ def do_attribution():
             unknowns_corpus.append((known_documents, ('unknown', unknown), -1))
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
-        if not os.path.exists(os.path.join(pickle_files_dir, dataset,
+        if not os.path.exists(os.path.join(pickle_files_dir, corpus_name,
                                            'X_' + similarity_measure.__name__ + '.pickle')):
             X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure,
-                                                                          os.path.join(pickle_files_dir, dataset))
+                                                                          os.path.join(attribution_dataset_data_dir, corpus_name))
             for (content, filename) in [(X, 'X_' + similarity_measure.__name__ + '.pickle'),
                                         (Y, 'Y_' + similarity_measure.__name__ + '.pickle')]:
-                dfile = open(os.path.join(pickle_files_dir, dataset, filename), "wb")
+                dfile = open(os.path.join(pickle_files_dir, corpus_name, filename), "wb")
                 pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
                 dfile.close()
         else:
-            file = open(os.path.join(pickle_files_dir, dataset,
+            file = open(os.path.join(pickle_files_dir, corpus_name,
                                      'X_' + similarity_measure.__name__ + '.pickle'), 'rb')
             X = pickle.load(file)
             file.close()
-            file = open(os.path.join(pickle_files_dir, dataset,
+            file = open(os.path.join(pickle_files_dir, corpus_name,
                                      'Y_' + similarity_measure.__name__ + '.pickle'), 'rb')
             Y = pickle.load(file)
             file.close()
@@ -164,7 +163,7 @@ def do_attribution():
                 classifier.set_params(probability=True)
                 classifier.fit(X_train, Y_train)
             X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure,
-                                                                                   os.path.join(pickle_files_dir, dataset))
+                                                                                   os.path.join(attribution_dataset_data_dir, corpus_name))
             Y_unknowns_predicted = clf.predict_proba(X_test)
 
             index_of_True = clf.classes_.index(True)
@@ -316,14 +315,12 @@ def corpus_as_one_text(corpus):
 
 
 def load_attribution_data(corpus_name):
-    dataset = pickle_files_dir + '/' + corpus_name
-
-    if not os.path.exists(os.path.join('corpora_texts', dataset)):
+    if not os.path.exists(os.path.join('corpora_texts', pickle_files_dir, corpus_name)):
         if not os.path.exists('corpora_texts'):
             os.makedirs('corpora_texts')
         candidates = jsonhandler.candidates
         unknowns = jsonhandler.unknowns
-        jsonhandler.loadJson(dataset)
+        jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
         jsonhandler.loadTraining()
         corpus = []
         for author in candidates:
@@ -351,8 +348,8 @@ def load_attribution_data(corpus_name):
                 data_sample.append(True)
                 corpus.append((data_sample))
         # Another run of the program could have written the corpus
-        if not os.path.exists(os.path.join('corpora_texts', dataset)):
-            with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
+        if not os.path.exists(os.path.join('corpora_texts', pickle_files_dir, corpus_name)):
+            with open(os.path.join('corpora_texts', pickle_files_dir, corpus_name), 'wb') as pickle_file:
                 pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
     else:
         with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
