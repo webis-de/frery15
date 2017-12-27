@@ -135,9 +135,9 @@ def do_attribution():
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
         print('Start training and test')
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
+            clf = classifier.fit(X_train, Y_train)
+            predicted_labels = clf.predict(X_test)
             for metric in [roc_auc_score, accuracy_score]:
-                clf = classifier.fit(X_train, Y_train)
-                predicted_labels = clf.predict(X_test)
                 print(metric.__name__ + ' ' + classifier.__class__.__name__)
                 try:
                     print(metric(Y_test, predicted_labels))
