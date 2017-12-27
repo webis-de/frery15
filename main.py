@@ -24,6 +24,7 @@ test_corpora_url = 'http://www.uni-weimar.de/medien/webis/corpora/corpus-pan-lab
 test_corpora_dir = 'pan14-authorship-verification-test-corpus2-2014-04-22'
 data_dir = 'data'
 features_dict_folder = 'features_dict'
+transformationdir = None
 
 attribution_dataset_data_dir = sys.argv[2]#.split(sep='/')[-1] #'../authorship-attribution'
 pickle_files_dir = attribution_dataset_data_dir
@@ -227,10 +228,12 @@ def calculate_features(args):
         for known_document in known_documents:
             (author, textfile) = known_document
             known_documents_in_representation_space.append(
-                jsonhandler.loadTransformedTrainingText(author, textfile, representation_space.__name__))
+                jsonhandler.loadTransformedTrainingText(author, textfile, representation_space.__name__,
+                                                        transformationdir=transformationdir))
         (author, textfile) = unknown
         unknown_document_in_representation_space = jsonhandler.loadTransformedTrainingText(author, textfile,
-                                                                                           representation_space.__name__)
+                                                                                           representation_space.__name__,
+                                                                                           transformationdir=transformationdir)
         threshold = None
         # print(dissimilarity_counter_method(known_documents_in_representation_space,
         #                                   unknown_document_in_representation_space, threshold=threshold,

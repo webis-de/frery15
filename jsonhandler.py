@@ -101,22 +101,32 @@ def getTrainingText(cand, fname):
     dfile.close()
     return s
 
+
 # TODO: Could generalize for also unknowns
-def pickleTransformedTrainingText(cand, fname, content, transformation_name):
-    dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
+def pickleTransformedTrainingText(cand, fname, content, transformation_name, transformationdir = None):
+    if transformationdir != None:
+        dfile = open(os.path.join(transformationdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
+    else:
+        dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
     pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
     dfile.close()
 
 
-def loadTransformedTrainingText(cand, fname, transformation_name):
-    file = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), 'rb')
+def loadTransformedTrainingText(cand, fname, transformation_name, transformationdir = None):
+    if transformationdir != None:
+        file = open(os.path.join(transformationdir, cand, fname + '_' + transformation_name + '.pickle'), 'rb')
+    else:
+        file = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), 'rb')
     result = pickle.load(file)
     file.close()
     return result
 
 
-def existTransformedTrainingText(cand, fname, transformation_name):
-    return os.path.exists(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'))
+def existTransformedTrainingText(cand, fname, transformation_name, transformationdir = None):
+    if transformationdir != None:
+        return os.path.exists(os.path.join(transformationdir, cand, fname + '_' + transformation_name + '.pickle'))
+    else:
+        return os.path.exists(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'))
 
 # get training file as bytearray
 
