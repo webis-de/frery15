@@ -83,5 +83,3 @@ def transform_write_text(arg):
         raise FileNotFoundError("Ahh")
 
     jsonhandler.reset_state()
-
-transform_data()
