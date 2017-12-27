@@ -105,6 +105,8 @@ def getTrainingText(cand, fname):
 # TODO: Could generalize for also unknowns
 def pickleTransformedTrainingText(cand, fname, content, transformation_name, transformationdir = None):
     if transformationdir != None:
+        if not os.path.exists(os.path.join(transformationdir, cand)):
+            os.makedirs(os.path.join(transformationdir, cand))
         dfile = open(os.path.join(transformationdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
     else:
         dfile = open(os.path.join(corpusdir, cand, fname + '_' + transformation_name + '.pickle'), "wb")
