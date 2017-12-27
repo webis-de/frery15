@@ -28,6 +28,8 @@ def transform_data():
     for unknown in unknowns:
         corpus.append(jsonhandler.getUnknownText(unknown))
 
+    if not os.path.exists(os.path.join(pickle_files_dir, corpus_name)):
+        os.makedirs(os.path.join(pickle_files_dir, corpus_name))
     corpus_file = open(os.path.join(pickle_files_dir, corpus_name, 'all_text_files.pickle'), "wb")
     pickle.dump(corpus, corpus_file, protocol=pickle.HIGHEST_PROTOCOL)
     corpus_file.close()
@@ -35,11 +37,11 @@ def transform_data():
     args = []
     for author in candidates:
         for file in jsonhandler.trainings[author]:
-            args.append((author, file, pickle_files_dir, corpus_name))
+            args.append((author, file, pickle_files_dir, attribution_dataset_data_dir, corpus_name))
     # TODO: Also for unknown texts
     author = 'unknown'
     for file in unknowns:
-        args.append((author, file, pickle_files_dir, corpus_name))
+        args.append((author, file, pickle_files_dir, attribution_dataset_data_dir, corpus_name))
     result = pool.map_async(transform_write_text, args).get()
     #result.wait()
     pool.close()
@@ -48,8 +50,8 @@ def transform_data():
 
 
 def transform_write_text(arg):
-    (author, file, pickle_files_dir, corpus_name) = arg
-    jsonhandler.loadJson(dataset)
+    (author, file, pickle_files_dir, attribution_dataset_data_dir, corpus_name) = arg
+    jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
     if author != 'unknown':
         text = jsonhandler.getTrainingText(author, file)
     else:

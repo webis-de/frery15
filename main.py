@@ -25,7 +25,7 @@ test_corpora_dir = 'pan14-authorship-verification-test-corpus2-2014-04-22'
 data_dir = 'data'
 features_dict_folder = 'features_dict'
 
-attribution_dataset_data_dir = sys.argv[2].split(sep='/')[-1] #'../authorship-attribution'
+attribution_dataset_data_dir = sys.argv[2]#.split(sep='/')[-1] #'../authorship-attribution'
 pickle_files_dir = attribution_dataset_data_dir
 attribution_dataset_dirs = ['pan11-authorship-attribution-training-dataset-small-2015-10-20',
                             'pan11-authorship-attribution-training-dataset-large-2015-10-20',
