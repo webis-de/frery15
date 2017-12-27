@@ -71,7 +71,6 @@ def transform_write_text(arg):
                                                       transformationdir = transformationdir)
         else:
             print('File already exists')
-            content = jsonhandler.loadTransformedTrainingText(author, file, representation_space.__name__)
 
     for representation_space in [representation_space1, representation_space2, representation_space3,
                                  representation_space4, representation_space5]:
@@ -83,8 +82,5 @@ def transform_write_text(arg):
                                                       transformationdir = transformationdir)
         else:
             print('File already exists')
-            content = jsonhandler.loadTransformedTrainingText(author, file, representation_space.__name__)
-    if not os.path.exists(os.path.join(pickle_files_dir, corpus_name, author, file+'_'+representation_space1.__name__+'.pickle')):
-        raise FileNotFoundError("Ahh")
 
     jsonhandler.reset_state()
