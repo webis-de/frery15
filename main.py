@@ -318,7 +318,7 @@ def corpus_as_one_text(corpus):
 
 
 def load_attribution_data(corpus_name):
-    if not os.path.exists(os.path.join('corpora_texts', pickle_files_dir, corpus_name)):
+    if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
         if not os.path.exists('corpora_texts'):
             os.makedirs('corpora_texts')
         candidates = jsonhandler.candidates
