@@ -121,6 +121,7 @@ def do_attribution():
     unknowns = jsonhandler.unknowns
 
     jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
+    jsonhandler.loadTraining()
 
     unknowns_corpus = []
     for unknown in unknowns:
