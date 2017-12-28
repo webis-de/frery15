@@ -176,7 +176,7 @@ def do_attribution():
                 predictions_one_unknown.append(binary_prediction[index_of_same_author][0])
                 if i == len(candidates) - 1:
                     predictions.append(predictions_one_unknown)
-                    print("Predictions: " + predictions_one_unknown)
+                    print("Predictions: " + str(predictions_one_unknown))
                     i = 0
                     predictions_one_unknown = []
                 else:
@@ -188,8 +188,8 @@ def do_attribution():
             for unknown in predictions:
                 authors.append(candidate+'{:05d}'.format(unknown.index(max(unknown))))
                 scores.append(unknown[unknown.index(max(unknown))])
-            print("Predicted authors: " + authors)
-            print("Prediction scores:" + scores)
+            print("Predicted authors: " + str(authors))
+            print("Prediction scores:" + str(scores))
 
             assert len(unknowns) == len(authors) == len(scores), str(len(unknowns)) + " " + str(
                 len(authors)) + " " + str(len(scores))
