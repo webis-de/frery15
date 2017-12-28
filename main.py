@@ -173,7 +173,7 @@ def do_attribution():
             predictions_one_unknown = []
             i = 0
             for binary_prediction in Y_unknowns_predicted:
-                predictions_one_unknown.append(binary_prediction[index_of_same_author])
+                predictions_one_unknown.append(binary_prediction[index_of_same_author][0])
                 if i == len(candidates) - 1:
                     predictions.append(predictions_one_unknown)
                     i = 0
