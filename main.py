@@ -178,6 +178,7 @@ def do_attribution():
                     predictions.append(predictions_one_unknown)
                     i = 0
                     predictions_one_unknown = []
+                i += 1
 
             authors = []
             scores = []
