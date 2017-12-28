@@ -5,17 +5,14 @@ from representation_spaces import *
 from main import cores_to_leave_over, pickle_files_dir, attribution_dataset_data_dir, transformationdir
 import sys
 import pickle
-import time
+
 
 def transform_data():
     corpus_name = sys.argv[1]
     assert corpus_name != ''
 
-    pool = Pool(processes=cpu_count()-cores_to_leave_over)
+    pool = Pool(processes=cpu_count() - cores_to_leave_over)
 
-    #if not os.path.exists(os.path.join('corpora_texts', dataset)):
-    #    if not os.path.exists('corpora_texts'):
-    #        os.makedirs('corpora_texts')
     candidates = jsonhandler.candidates
     unknowns = jsonhandler.unknowns
     jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
@@ -43,10 +40,8 @@ def transform_data():
     for file in unknowns:
         args.append((author, file, pickle_files_dir, attribution_dataset_data_dir, corpus_name))
     result = pool.map_async(transform_write_text, args).get()
-    #result.wait()
     pool.close()
     pool.join()
-
 
 
 def transform_write_text(arg):
@@ -64,22 +59,22 @@ def transform_write_text(arg):
                                  representation_space8,
                                  representation_space678]:
         if not jsonhandler.existTransformedTrainingText(author, file, representation_space.__name__,
-                                                        transformationdir = transformationdir):
+                                                        transformationdir=transformationdir):
             print('File does not exist')
             content = representation_space(text)
             jsonhandler.pickleTransformedTrainingText(author, file, content, representation_space.__name__,
-                                                      transformationdir = transformationdir)
+                                                      transformationdir=transformationdir)
         else:
             print('File already exists')
 
     for representation_space in [representation_space1, representation_space2, representation_space3,
                                  representation_space4, representation_space5]:
         if not jsonhandler.existTransformedTrainingText(author, file, representation_space.__name__,
-                                                        transformationdir = transformationdir):
+                                                        transformationdir=transformationdir):
             print('File does not exist')
             content = representation_space(text, corpus)
             jsonhandler.pickleTransformedTrainingText(author, file, content, representation_space.__name__,
-                                                      transformationdir = transformationdir)
+                                                      transformationdir=transformationdir)
         else:
             print('File already exists')
 
