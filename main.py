@@ -187,8 +187,8 @@ def do_attribution():
 
             print("Number of predictions: " + str(len(predictions)))
             for unknown in predictions:
-                number_of_author = unknown.index(max(unknown)) + 1
-                authors.append('candidate{:05d}'.format(number_of_author))
+                number_of_author = unknown.index(max(unknown))
+                authors.append('candidate{:05d}'.format(number_of_author + 1))
                 scores.append(unknown[number_of_author])
             print("Predicted authors: " + str(authors))
             print("Prediction scores:" + str(scores))
