@@ -167,7 +167,7 @@ def do_attribution():
                                                                                    os.path.join(attribution_dataset_data_dir, corpus_name))
             Y_unknowns_predicted = clf.predict_proba(X_test)
 
-            index_of_True = clf.classes_.index(True)
+            index_of_True = np.where(clf.classes_ == True)
 
             predictions = []
             predictions_one_unknown = []
