@@ -165,7 +165,7 @@ def do_attribution():
                 classifier.fit(X_train, Y_train)
             X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure,
                                                                                    os.path.join(attribution_dataset_data_dir, corpus_name))
-            Y_unknowns_predicted = clf.predict_proba(X_test)
+            Y_unknowns_predicted = clf.predict_proba(X_unknowns)
 
             index_of_same_author = np.where(clf.classes_ == True)
 
