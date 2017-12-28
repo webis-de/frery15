@@ -162,8 +162,22 @@ def do_attribution():
             if classifier.__class__ == SVC:
                 classifier.set_params(probability=True)
                 classifier.fit(X_train, Y_train)
-            X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure,
-                                                                                   os.path.join(attribution_dataset_data_dir, corpus_name))
+
+            if not os.path.exists(os.path.join(pickle_files_dir, corpus_name,
+                                           'X_unknowns_' + similarity_measure.__name__ + '.pickle')):
+                X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure,
+                                                                                       os.path.join(attribution_dataset_data_dir, corpus_name))
+                dfile = open(
+                    os.path.join(pickle_files_dir, corpus_name, 'X_unknowns_' + similarity_measure.__name__ + '.pickle'),
+                    "wb")
+                pickle.dump(X_unknowns, dfile, protocol=pickle.HIGHEST_PROTOCOL)
+                dfile.close()
+            else:
+                file = open(os.path.join(pickle_files_dir, corpus_name,
+                                     'X_unknowns_' + similarity_measure.__name__ + '.pickle'), 'rb')
+                X_unknowns = pickle.load(file)
+                file.close()
+
             print("Number of training samples for attribution: " + str(len(X_unknowns)))
             Y_unknowns_predicted = clf.predict_proba(X_unknowns)
 
