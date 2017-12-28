@@ -150,6 +150,7 @@ def do_attribution():
                                      'Y_' + similarity_measure.__name__ + '.pickle'), 'rb')
             Y = pickle.load(file)
             file.close()
+            print("Loaded X and Y for " + similarity_measure.__name__)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
         print('Start training and test')
         for classifier in [DecisionTreeClassifier(), SVC(kernel='rbf'), SVC(kernel='linear')]:
