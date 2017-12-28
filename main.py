@@ -362,4 +362,5 @@ def load_attribution_data(corpus_name):
 
 if __name__ == '__main__':
     transform_files.transform_data()
+    jsonhandler.reset_state()
     do_attribution()
