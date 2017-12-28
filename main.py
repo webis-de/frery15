@@ -118,8 +118,9 @@ def do_attribution():
     #load_feature_dict(features_dict_folder, corpora_hash)
 
     candidates = jsonhandler.candidates
-
     unknowns = jsonhandler.unknowns
+
+    jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
 
     unknowns_corpus = []
     for unknown in unknowns:
@@ -128,6 +129,7 @@ def do_attribution():
             for file in jsonhandler.trainings[candidate]:
                 known_documents.append((candidate, file))
             unknowns_corpus.append((known_documents, ('unknown', unknown), -1))
+    print("Size of unknowns_corpus " + str(len(unknowns_corpus)))
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
         if not os.path.exists(os.path.join(pickle_files_dir, corpus_name,
@@ -177,6 +179,7 @@ def do_attribution():
                                      'X_unknowns_' + similarity_measure.__name__ + '.pickle'), 'rb')
                 X_unknowns = pickle.load(file)
                 file.close()
+                print("Loaded X and Y unknowns for " + similarity_measure.__name__)
 
             print("Number of training samples for attribution: " + str(len(X_unknowns)))
             Y_unknowns_predicted = clf.predict_proba(X_unknowns)
