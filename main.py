@@ -111,7 +111,7 @@ def training_test():
 
 def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
-    corpus_name = sys.argv[1]
+    corpus_name = sys.argv[1].split(sep='/')[-1]
     print('Load attribution data')
     corpus = load_attribution_data(corpus_name)
 
