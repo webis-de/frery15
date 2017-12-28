@@ -167,13 +167,13 @@ def do_attribution():
                                                                                    os.path.join(attribution_dataset_data_dir, corpus_name))
             Y_unknowns_predicted = clf.predict_proba(X_test)
 
-            index_of_True = np.where(clf.classes_ == True)
+            index_of_same_author = np.where(clf.classes_ == True)
 
             predictions = []
             predictions_one_unknown = []
             i = 0
             for binary_prediction in Y_unknowns_predicted:
-                predictions_one_unknown.append(binary_prediction[index_of_True])
+                predictions_one_unknown.append(binary_prediction[index_of_same_author])
                 if i == len(candidates) - 1:
                     predictions.append(predictions_one_unknown)
                     i = 0
