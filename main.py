@@ -355,8 +355,8 @@ def load_attribution_data(corpus_name):
                 data_sample.append(True)
                 corpus.append((data_sample))
         # Another run of the program could have written the corpus
-        if not os.path.exists(os.path.join('corpora_texts', pickle_files_dir, corpus_name)):
-            with open(os.path.join('corpora_texts', pickle_files_dir, corpus_name), 'wb') as pickle_file:
+        if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
+            with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
                 pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
     else:
         with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
