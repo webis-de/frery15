@@ -123,7 +123,6 @@ def do_attribution():
 
     unknowns_corpus = []
     for unknown in unknowns:
-        # Alle Texte für die jeweiligen Autoren zusammensammeln und das für jedes unknown
         for candidate in candidates:
             known_documents = []
             for file in jsonhandler.trainings[candidate]:
@@ -165,6 +164,7 @@ def do_attribution():
                 classifier.fit(X_train, Y_train)
             X_unknowns, _ = calculate_attribution_features_in_representation_space(unknowns_corpus, similarity_measure,
                                                                                    os.path.join(attribution_dataset_data_dir, corpus_name))
+            print("Number of training samples for attribution: " + len(X_unknowns))
             Y_unknowns_predicted = clf.predict_proba(X_unknowns)
 
             index_of_same_author = np.where(clf.classes_ == True)
@@ -176,6 +176,7 @@ def do_attribution():
                 predictions_one_unknown.append(binary_prediction[index_of_same_author][0])
                 if i == len(candidates) - 1:
                     predictions.append(predictions_one_unknown)
+                    print("Predictions: " + predictions_one_unknown)
                     i = 0
                     predictions_one_unknown = []
                 else:
@@ -187,6 +188,8 @@ def do_attribution():
             for unknown in predictions:
                 authors.append(candidate+'{:05d}'.format(unknown.index(max(unknown))))
                 scores.append(unknown[unknown.index(max(unknown))])
+            print("Predicted authors: " + authors)
+            print("Prediction scores:" + scores)
 
             assert len(unknowns) == len(authors) == len(scores), str(len(unknowns)) + " " + str(
                 len(authors)) + " " + str(len(scores))
