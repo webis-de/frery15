@@ -188,6 +188,8 @@ def do_attribution():
                 authors.append(candidate+'{:05d}'.format(unknown.index(max(unknown))))
                 scores.append(unknown[unknown.index(max(unknown))])
 
+            assert len(unknowns) == len(authors) == len(scores), str(len(unknowns)) + " " + str(
+                len(authors)) + " " + str(len(scores))
             jsonhandler.storeJson(sys.argv[3], unknowns, authors, scores)
 
 
