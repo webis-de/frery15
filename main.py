@@ -176,6 +176,7 @@ def do_attribution():
                     "wb")
                 pickle.dump(X_unknowns, dfile, protocol=pickle.HIGHEST_PROTOCOL)
                 dfile.close()
+                print("Calculated and written X and Y unknowns for " + similarity_measure.__name__)
             else:
                 file = open(os.path.join(pickle_files_dir, corpus_name,
                                      'X_unknowns_' + similarity_measure.__name__ + '.pickle'), 'rb')
@@ -184,6 +185,8 @@ def do_attribution():
                 print("Loaded X and Y unknowns for " + similarity_measure.__name__)
 
             print("Number of training samples for attribution: " + str(len(X_unknowns)))
+            assert len(X_unknowns) != 0, str(len(X_unknowns)) + " training samples for attribution"
+
             Y_unknowns_predicted = clf.predict_proba(X_unknowns)
 
             index_of_same_author = np.where(clf.classes_ == True)
