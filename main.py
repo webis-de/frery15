@@ -114,6 +114,7 @@ def do_attribution():
     corpus_name = sys.argv[1].split(sep='/')[-1]
     print('Load attribution data')
     corpus = load_attribution_data(corpus_name)
+    jsonhandler.reset_state()
 
     #load_feature_dict(features_dict_folder, corpora_hash)
 
