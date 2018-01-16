@@ -113,8 +113,12 @@ def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
     corpus_name = sys.argv[1].split(sep='/')[-1]
     print('Load attribution data')
-    corpus = load_attribution_data(corpus_name)
     jsonhandler.reset_state()
+    if len(sys.argv) < 5:
+        rate_of_data_reduction = 1
+    else:
+        rate_of_data_reduction = float(sys.argv[4])
+        print("Reduced data tp " + rate_of_data_reduction)
 
     #load_feature_dict(features_dict_folder, corpora_hash)
 
@@ -349,7 +353,7 @@ def corpus_as_one_text(corpus):
     return corpus_each_problem_as_one_text
 
 
-def load_attribution_data(corpus_name):
+def load_attribution_data(corpus_name, rate_of_data_reduction=None):
     if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
         if not os.path.exists('corpora_texts'):
             os.makedirs('corpora_texts')
@@ -362,6 +366,9 @@ def load_attribution_data(corpus_name):
             for other_author in candidates:
                 if author == other_author:
                     continue
+                if rate_of_data_reduction is not None:
+                    if(np.random.random() < rate_of_data_reduction):
+                        continue
                 for unknown_text in jsonhandler.trainings[other_author]:
                     data_sample = []
                     known_documents = []
