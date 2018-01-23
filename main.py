@@ -113,19 +113,21 @@ def do_attribution():
     #for dataset in attribution_dataset_dirs[2:]:#attribution_dataset_dirs:
     corpus_name = sys.argv[1].split(sep='/')[-1]
     print('Load attribution data')
-    jsonhandler.reset_state()
     if len(sys.argv) < 5:
-        rate_of_data_reduction = 1
+        size_of_training_data = 1
+        print("No reduction")
     else:
-        rate_of_data_reduction = float(sys.argv[4])
-        print("Reduced data tp " + rate_of_data_reduction)
+        size_of_training_data = float(sys.argv[4])
+        print("Reduced data to " + str(size_of_training_data))
+    corpus = load_attribution_data(corpus_name)
+    #jsonhandler.reset_state()
 
     #load_feature_dict(features_dict_folder, corpora_hash)
 
     candidates = jsonhandler.candidates
     unknowns = jsonhandler.unknowns
 
-    jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
+    #jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
     jsonhandler.loadTraining()
 
     unknowns_corpus = []
@@ -135,15 +137,21 @@ def do_attribution():
             for file in jsonhandler.trainings[candidate]:
                 known_documents.append((candidate, file))
             unknowns_corpus.append((known_documents, ('unknown', unknown), -1))
-    print("Size of unknowns_corpus " + str(len(unknowns_corpus)))
+    assert len(unknowns_corpus) != 0, "Size of unknowns_corpus " + str(len(unknowns_corpus))
+
+    print("Length of corpus before split: " + str(len(corpus)))
+    corpus, _, _, _ = train_test_split(corpus, corpus, train_size=size_of_training_data, random_state=42,
+                                                shuffle=True)
+    assert len(corpus) != 0, "Size of corpus " + str(len(corpus))
+    print("Length of corpus after split: " + str(len(corpus)))
 
     for similarity_measure in [cosine_similarity, correlation_coefficient, euclidean_distance]:
         if not os.path.exists(os.path.join(pickle_files_dir, corpus_name,
-                                           'X_' + similarity_measure.__name__ + '.pickle')):
+                                           'X_' + similarity_measure.__name__ + str(size_of_training_data) + '.pickle')):
             X, Y = calculate_attribution_features_in_representation_space(corpus, similarity_measure,
                                                                           os.path.join(attribution_dataset_data_dir, corpus_name))
-            for (content, filename) in [(X, 'X_' + similarity_measure.__name__ + '.pickle'),
-                                        (Y, 'Y_' + similarity_measure.__name__ + '.pickle')]:
+            for (content, filename) in [(X, 'X_' + similarity_measure.__name__ + str(size_of_training_data) + '.pickle'),
+                                        (Y, 'Y_' + similarity_measure.__name__ + str(size_of_training_data) + '.pickle')]:
                 dfile = open(os.path.join(pickle_files_dir, corpus_name, filename), "wb")
                 pickle.dump(content, dfile, protocol=pickle.HIGHEST_PROTOCOL)
                 dfile.close()
@@ -354,52 +362,51 @@ def corpus_as_one_text(corpus):
 
 
 def load_attribution_data(corpus_name, rate_of_data_reduction=None):
-    if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
-        if not os.path.exists('corpora_texts'):
-            os.makedirs('corpora_texts')
-        candidates = jsonhandler.candidates
-        unknowns = jsonhandler.unknowns
-        jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
-        jsonhandler.loadTraining()
-        corpus = []
-        for author in candidates:
-            for other_author in candidates:
-                if author == other_author:
-                    continue
-                if rate_of_data_reduction is not None:
-                    if(np.random.random() < rate_of_data_reduction):
-                        continue
-                for unknown_text in jsonhandler.trainings[other_author]:
-                    data_sample = []
-                    known_documents = []
-                    for known_document in jsonhandler.trainings[author]:
-                        if known_document != unknown_text:
-                            known_documents.append((author, known_document))
-                    data_sample.append(known_documents)
-                    data_sample.append((other_author, unknown_text))
-                    data_sample.append(False)
-                    corpus.append((data_sample))
-            for unknown in jsonhandler.trainings[author]:
+    #if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
+    if not os.path.exists('corpora_texts'):
+        os.makedirs('corpora_texts')
+    candidates = jsonhandler.candidates
+    unknowns = jsonhandler.unknowns
+    jsonhandler.loadJson(os.path.join(attribution_dataset_data_dir, corpus_name))
+    jsonhandler.loadTraining()
+    corpus = []
+    for author in candidates:
+        for other_author in candidates:
+            if author == other_author:
+                continue
+            for unknown_text in jsonhandler.trainings[other_author]:
                 data_sample = []
                 known_documents = []
                 for known_document in jsonhandler.trainings[author]:
-                    if unknown != known_document:
+                    if known_document != unknown_text:
                         known_documents.append((author, known_document))
                 data_sample.append(known_documents)
-                data_sample.append((author, unknown))
-                data_sample.append(True)
+                data_sample.append((other_author, unknown_text))
+                data_sample.append(False)
                 corpus.append((data_sample))
-        # Another run of the program could have written the corpus
-        if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
-            with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
-                pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
-    else:
-        with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
-            corpus = pickle.load(pickle_file)
+        for unknown in jsonhandler.trainings[author]:
+            data_sample = []
+            known_documents = []
+            for known_document in jsonhandler.trainings[author]:
+                if unknown != known_document:
+                    known_documents.append((author, known_document))
+            data_sample.append(known_documents)
+            data_sample.append((author, unknown))
+            data_sample.append(True)
+            corpus.append((data_sample))
+    # Another run of the program could have written the corpus
+    # if not os.path.exists(os.path.join('corpora_texts', corpus_name)):
+    #     with open(os.path.join('corpora_texts', corpus_name), 'wb') as pickle_file:
+    #         pickle.dump(corpus, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+    # else:
+    #     with open(os.path.join('corpora_texts', corpus_name), 'rb') as pickle_file:
+    #         corpus = pickle.load(pickle_file)
     return corpus
 
 
 if __name__ == '__main__':
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument()
     transform_files.transform_data()
     jsonhandler.reset_state()
     do_attribution()

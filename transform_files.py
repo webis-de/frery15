@@ -8,7 +8,7 @@ import pickle
 
 
 def transform_data():
-    corpus_name = sys.argv[1]
+    corpus_name = sys.argv[1].split(sep='/')[-1]
     assert corpus_name != ''
 
     pool = Pool(processes=cpu_count() - cores_to_leave_over)
@@ -65,7 +65,7 @@ def transform_write_text(arg):
             jsonhandler.pickleTransformedTrainingText(author, file, content, representation_space.__name__,
                                                       transformationdir=transformationdir)
         else:
-            print('File already exists')
+            pass
 
     for representation_space in [representation_space1, representation_space2, representation_space3,
                                  representation_space4, representation_space5]:
@@ -76,6 +76,6 @@ def transform_write_text(arg):
             jsonhandler.pickleTransformedTrainingText(author, file, content, representation_space.__name__,
                                                       transformationdir=transformationdir)
         else:
-            print('File already exists')
+            pass
 
     jsonhandler.reset_state()
