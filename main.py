@@ -157,11 +157,11 @@ def do_attribution():
                 dfile.close()
         else:
             file = open(os.path.join(pickle_files_dir, corpus_name,
-                                     'X_' + similarity_measure.__name__ + '.pickle'), 'rb')
+                                     'X_' + similarity_measure.__name__ + str(size_of_training_data) + '.pickle'), 'rb')
             X = pickle.load(file)
             file.close()
             file = open(os.path.join(pickle_files_dir, corpus_name,
-                                     'Y_' + similarity_measure.__name__ + '.pickle'), 'rb')
+                                     'Y_' + similarity_measure.__name__ + str(size_of_training_data) + '.pickle'), 'rb')
             Y = pickle.load(file)
             file.close()
             print("Loaded X and Y for " + similarity_measure.__name__)
